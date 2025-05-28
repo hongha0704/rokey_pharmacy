@@ -1,4 +1,6 @@
-## Rokey_Pharmacy
+# 💊 Rokey_Pharmacy
+## ROKEY B-1조 협동-2 Project
+---
 
 ## 🔗 출처 및 라이선스
 
