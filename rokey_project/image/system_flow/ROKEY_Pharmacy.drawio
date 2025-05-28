@@ -1,0 +1,126 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36" version="27.0.9">
+  <diagram name="페이지-1" id="VVqCfOVXfzy3V_eHcKEl">
+    <mxGraphModel dx="1130" dy="737" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" background="#ffffff" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="4uhuHD_OqtdL1rbwjFQc-1" value="Vision" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" parent="1" vertex="1">
+          <mxGeometry x="60" y="100" width="90" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="4uhuHD_OqtdL1rbwjFQc-2" value="Robot Control" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" parent="1" vertex="1">
+          <mxGeometry x="230" y="100" width="110" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="4uhuHD_OqtdL1rbwjFQc-5" value="&lt;div&gt;&lt;span style=&quot;background-color: light-dark(#ffffff, var(--ge-dark-color, #121212)); color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;약 정보&lt;/span&gt;&lt;/div&gt;Topic" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="4uhuHD_OqtdL1rbwjFQc-3" target="4uhuHD_OqtdL1rbwjFQc-4" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="4uhuHD_OqtdL1rbwjFQc-17" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="4uhuHD_OqtdL1rbwjFQc-3" target="4uhuHD_OqtdL1rbwjFQc-10" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="4uhuHD_OqtdL1rbwjFQc-3" value="처방전 인식" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="60" y="150" width="90" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="4uhuHD_OqtdL1rbwjFQc-4" value="처방전 인식 자세" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="230" y="150" width="110" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="4uhuHD_OqtdL1rbwjFQc-9" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="4uhuHD_OqtdL1rbwjFQc-6" target="4uhuHD_OqtdL1rbwjFQc-8" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="4uhuHD_OqtdL1rbwjFQc-6" value="서랍 열기&lt;br&gt;(4개 중 하나)" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="230" y="200" width="110" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="4uhuHD_OqtdL1rbwjFQc-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="4uhuHD_OqtdL1rbwjFQc-4" target="4uhuHD_OqtdL1rbwjFQc-6" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="305" y="200" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="4uhuHD_OqtdL1rbwjFQc-14" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="4uhuHD_OqtdL1rbwjFQc-8" target="4uhuHD_OqtdL1rbwjFQc-12" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="upQ7vDtuVSR7NkveM8dK-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="4uhuHD_OqtdL1rbwjFQc-8">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="110" y="275" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="upQ7vDtuVSR7NkveM8dK-4" value="이동 완료 여부&lt;div&gt;Topic&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="upQ7vDtuVSR7NkveM8dK-2">
+          <mxGeometry x="-0.2722" y="1" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="4uhuHD_OqtdL1rbwjFQc-8" value="연 서랍 위로 이동" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="230" y="260" width="110" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="upQ7vDtuVSR7NkveM8dK-1" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-family: Helvetica; font-size: 11px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: nowrap; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; display: inline !important; float: none;&quot;&gt;약의 좌표,&lt;/span&gt;&lt;div style=&quot;forced-color-adjust: none; color: rgb(0, 0, 0); font-family: Helvetica; font-size: 11px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: nowrap; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;&quot;&gt;약의 자세&lt;br style=&quot;forced-color-adjust: none;&quot;&gt;&lt;div style=&quot;forced-color-adjust: none;&quot;&gt;Topic&lt;/div&gt;&lt;/div&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="4uhuHD_OqtdL1rbwjFQc-10" target="4uhuHD_OqtdL1rbwjFQc-12">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="4uhuHD_OqtdL1rbwjFQc-10" value="약 인식 및&lt;div&gt;좌표와 자세 추정&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="60" y="300" width="90" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="4uhuHD_OqtdL1rbwjFQc-16" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="4uhuHD_OqtdL1rbwjFQc-12" target="4uhuHD_OqtdL1rbwjFQc-15" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="4uhuHD_OqtdL1rbwjFQc-12" value="약 pick" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="230" y="310" width="110" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="4uhuHD_OqtdL1rbwjFQc-15" value="약 봉투에 담기" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="230" y="360" width="110" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="4uhuHD_OqtdL1rbwjFQc-18" value="약 처방" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+          <mxGeometry x="60" y="50" width="470" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="4uhuHD_OqtdL1rbwjFQc-20" value="Voice" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" parent="1" vertex="1">
+          <mxGeometry x="420" y="100" width="110" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="4uhuHD_OqtdL1rbwjFQc-22" value="Vision" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" parent="1" vertex="1">
+          <mxGeometry x="60" y="470" width="90" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="4uhuHD_OqtdL1rbwjFQc-23" value="Robot Control" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" parent="1" vertex="1">
+          <mxGeometry x="230" y="470" width="110" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="4uhuHD_OqtdL1rbwjFQc-24" value="Voice" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" parent="1" vertex="1">
+          <mxGeometry x="420" y="470" width="110" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="4uhuHD_OqtdL1rbwjFQc-30" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="4uhuHD_OqtdL1rbwjFQc-25" target="4uhuHD_OqtdL1rbwjFQc-29" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="4uhuHD_OqtdL1rbwjFQc-25" value="Home 자세" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="230" y="520" width="110" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="4uhuHD_OqtdL1rbwjFQc-27" value="구매물품&lt;div&gt;Topic&lt;/div&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="4uhuHD_OqtdL1rbwjFQc-26" target="4uhuHD_OqtdL1rbwjFQc-25" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="4uhuHD_OqtdL1rbwjFQc-26" value="구매할 물품 요청" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="420" y="520" width="110" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="4uhuHD_OqtdL1rbwjFQc-28" value="일반의약품 구매" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+          <mxGeometry x="60" y="420" width="470" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="4uhuHD_OqtdL1rbwjFQc-36" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="4uhuHD_OqtdL1rbwjFQc-29" target="4uhuHD_OqtdL1rbwjFQc-35" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="4uhuHD_OqtdL1rbwjFQc-29" value="선반 바라보는 자세" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="230" y="570" width="110" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="4uhuHD_OqtdL1rbwjFQc-33" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="4uhuHD_OqtdL1rbwjFQc-32" target="4uhuHD_OqtdL1rbwjFQc-29" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="4uhuHD_OqtdL1rbwjFQc-34" value="탐지 정보&lt;div&gt;Topic&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="4uhuHD_OqtdL1rbwjFQc-33" vertex="1" connectable="0">
+          <mxGeometry x="-0.1698" y="-2" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="4uhuHD_OqtdL1rbwjFQc-32" value="일반의약품&lt;div&gt;객체 탐지&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="60" y="560" width="90" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="4uhuHD_OqtdL1rbwjFQc-38" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="4uhuHD_OqtdL1rbwjFQc-35" target="4uhuHD_OqtdL1rbwjFQc-37" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="4uhuHD_OqtdL1rbwjFQc-35" value="선반 위의 물품 pick" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="230" y="620" width="110" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="4uhuHD_OqtdL1rbwjFQc-37" value="물품 전달" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="230" y="670" width="110" height="30" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
