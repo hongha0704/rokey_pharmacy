@@ -1,3 +1,5 @@
+## Rokey_Pharmacy
+
 ## 🔗 출처 및 라이선스
 
 이 프로젝트는 **두산로보틱스(Doosan Robotics Inc.)**에서 배포한 ROS 2 패키지를 기반으로 합니다.  
