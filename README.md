@@ -2,7 +2,7 @@
 ## ROKEY B-1조 협동-2 Project
 ---
 
-## 🔗 출처 및 라이선스
+### 🔗 출처 및 라이선스
 
 이 프로젝트는 **두산로보틱스(Doosan Robotics Inc.)**에서 배포한 ROS 2 패키지를 기반으로 합니다.  
 해당 소스코드는 [BSD 3-Clause License](https://opensource.org/licenses/BSD-3-Clause)에 따라 공개되어 있으며,  
