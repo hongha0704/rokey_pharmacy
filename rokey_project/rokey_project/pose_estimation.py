@@ -1,58 +1,101 @@
-import cv2
-import numpy as np
+'''카메라를 열고 객체의 segmentation 마스크를 활용하여, 알약이 회전한 각도를 계산하고 출력하는 파일'''
 
-# 웹캠 열기 (기본 카메라는 0번, 다르면 1, 2 등으로 바꾸세요)
-cap = cv2.VideoCapture(6)
+import cv2
+import random
+import os
+import numpy as np
+from ament_index_python.packages import get_package_share_directory
+from ultralytics import YOLO
+
+# 기본 카메라: 0, realsense gray: 4, realsense: 6
+CAMERA_NUM = 6
+
+# 신뢰도
+CONFIDENCE = 0.40
+
+# YOLO 모델 로드
+package_share_directory = get_package_share_directory('rokey_project')
+weights = os.path.join(package_share_directory, 'weights', 'diarrhea_segmentation_best.pt')
+model = YOLO(weights)
+
+# 클래스별 고유 색상 생성 (랜덤 색상 생성)
+class_names = model.names  # 딕셔너리 형태: {0: 'class0', 1: 'class1', ...}
+class_colors = {cls_id: (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)) for cls_id in class_names}
+
+# 웹캠 열기
+cap = cv2.VideoCapture(CAMERA_NUM)
 
 if not cap.isOpened():
-    print("웹캠을 열 수 없습니다.")
+    print("❌ 웹캠을 열 수 없습니다.")
     exit()
 
 while True:
     ret, frame = cap.read()
     if not ret:
+        print("❌ 프레임을 읽을 수 없습니다.")
         break
 
-    # 1. 흑백 변환
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    # YOLO 추론 수행 (단일 프레임에 대해 객체 검출 및 분할 실행)
+    results = model(frame)
 
-    # 2. 이진화
-    _, binary = cv2.threshold(gray, 100, 255, cv2.THRESH_BINARY)
+    # 출력용 프레임 복사 (마스크, 텍스트 등을 이 위에 시각화함)
+    annotated_frame = frame.copy()
 
-    # 3. 윤곽선 추출
-    contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    contours = sorted(contours, key=cv2.contourArea, reverse=True)
+    # 마스크 결과가 존재할 경우 처리
+    if results and results[0].masks is not None:
+        masks = results[0].masks.data.cpu().numpy()  # 세그멘테이션 마스크 (num_masks, H, W)
+        boxes = results[0].boxes    # 해당 마스크에 대한 바운딩 박스 정보
 
-    for cnt in contours:
-        if len(cnt) >= 5:
-            try:
-                ellipse = cv2.fitEllipse(cnt)
-                (x, y), (MA, ma), angle = ellipse
-                print(f"Angle: {angle:.1f}")
-            except Exception as e:
-                print(f"Failed to fit ellipse: {e}")
+        # 모든 탐지된 객체에 대해 반복
+        for i, box in enumerate(boxes):
+            # 일정 신뢰도 이상인 박스만 필터링
+            conf = box.conf.item()
+            if conf < CONFIDENCE:
+                continue
 
-            # 타원 그리기
-            cv2.ellipse(frame, ellipse, (0, 255, 0), 2)
+            cls = int(box.cls[0])   # 클래스 ID
+            class_name = class_names[cls]   # 클래스 이름
+            color = class_colors.get(cls, (0, 255, 0))  # 클래스 색상
 
-            # 중심점 표시
-            cv2.circle(frame, (int(x), int(y)), 3, (0, 0, 255), -1)
+            mask = masks[i]  # 현재 객체의 마스크 (H, W)
+            mask_bool = mask > 0.5 # 마스크 이진화 (True/False로 표현)
 
-            # 회전각 텍스트 출력
-            text = f"Angle: {angle:.1f}"
-            cv2.putText(frame, text, (int(x) + 10, int(y) - 10),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 0), 2)
+            # 클래스 색상으로 채워진 마스크 생성 (컬러 마스크)
+            colored_mask = np.zeros_like(annotated_frame, dtype=np.uint8)
+            colored_mask[:, :, 0] = color[0]
+            colored_mask[:, :, 1] = color[1]
+            colored_mask[:, :, 2] = color[2]
 
-            print(text)
+            # 투명도 적용하여 원본 프레임에 컬러 마스크 오버레이
+            alpha = 0.5
+            annotated_frame[mask_bool] = cv2.addWeighted(colored_mask, alpha, annotated_frame, 1 - alpha, 0)[mask_bool]
 
-    # 결과 프레임 출력
-    try:
-        cv2.imshow("Binary", binary)
-        cv2.waitKey(1)
-    except cv2.error as e:
-        print("imshow error:", e)
+            # 마스크를 0 또는 255의 uint8 타입으로 변환 (OpenCV 함수 사용을 위해 필요)
+            mask_uint8 = (mask_bool.astype(np.uint8)) * 255
+            
+            # 마스크로부터 외곽선(contour) 추출
+            contours, _ = cv2.findContours(mask_uint8, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            
+            # 최소 5개의 포인트가 있는 외곽선이 존재할 경우 타원 피팅 가능
+            if contours and len(contours[0]) >= 5:
+                ellipse = cv2.fitEllipse(contours[0])  # 외곽선을 타원으로 근사 (중심 좌표, 축 길이, 회전 각도 반환)
+                (center, axes, angle) = ellipse  # 타원의 중심, 장축/단축 길이, 회전 각도(도 단위) 추출
 
-    # 'q' 키 누르면 종료
+                # 타원 및 회전 각도 시각화
+                cv2.ellipse(annotated_frame, ellipse, color, 2)
+                angle_text = f"{angle:.1f} deg"
+                cv2.putText(annotated_frame, angle_text, (int(center[0]) + 35, int(center[1])), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
+
+            # 마스크의 픽셀 좌표 추출 (텍스트 위치 계산용)
+            ys, xs = np.where(mask_bool)
+            if len(xs) > 0 and len(ys) > 0:
+                x1, y1 = np.min(xs), np.min(ys)
+                # 텍스트 그리기 (클래스 이름)
+                cv2.putText(annotated_frame, class_name, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2)
+
+    # 화면 출력
+    cv2.imshow(f"YOLOv11 Webcam Segmentation (Conf >= {CONFIDENCE})", annotated_frame)
+
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 

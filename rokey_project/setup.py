@@ -32,6 +32,7 @@ setup(
             "pose_estimation=rokey_project.pose_estimation:main",
             "segmentation=rokey_project.segmentation:main",
             "robot_control=rokey_project.robot_control:main",
+            "robot_grip_test=rokey_project.robot_grip_test:main",
         ],
     },
 )
