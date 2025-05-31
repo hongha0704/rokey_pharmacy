@@ -5,7 +5,7 @@ import os
 from datetime import datetime
 
 # 카메라 번호(웹캠:0, realsense(gray):4, realsense(rgb):6)
-CAMERA_NUM = 6
+CAMERA_NUM = 4
 
 # 저장 경로 설정(경로 설정 주의)
 save_dir = '/home/hongha/rokey_pharmacy_ws/src/rokey_project/image/object_detection'

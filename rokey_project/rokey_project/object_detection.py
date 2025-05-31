@@ -7,14 +7,14 @@ from ament_index_python.packages import get_package_share_directory
 from ultralytics import YOLO
 
 # 기본 카메라: 0, realsense gray: 4, realsense: 6
-CAMERA_NUM = 6
+CAMERA_NUM = 4
 
 # 신뢰도
 CONFIDENCE = 0.40
 
 # YOLO 모델 로드
 package_share_directory = get_package_share_directory('rokey_project')
-weights = os.path.join(package_share_directory, 'weights', 'text_ocr_best.pt')
+weights = os.path.join(package_share_directory, 'weights', 'dermatitis_2.pt')
 model = YOLO(weights)
 
 # 클래스별 고유 색상 생성 (랜덤 색상 생성)

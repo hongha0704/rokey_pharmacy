@@ -8,14 +8,14 @@ from ament_index_python.packages import get_package_share_directory
 from ultralytics import YOLO
 
 # 기본 카메라: 0, realsense gray: 4, realsense: 6
-CAMERA_NUM = 6
+CAMERA_NUM = 4
 
 # 신뢰도
 CONFIDENCE = 0.40
 
 # YOLO 모델 로드
 package_share_directory = get_package_share_directory('rokey_project')
-weights = os.path.join(package_share_directory, 'weights', 'diarrhea_segmentation_best.pt')
+weights = os.path.join(package_share_directory, 'weights', 'dermatitis_2.pt')
 model = YOLO(weights)
 
 # 클래스별 고유 색상 생성 (랜덤 색상 생성)
@@ -75,7 +75,7 @@ while True:
             if len(xs) > 0 and len(ys) > 0:
                 x1, y1 = np.min(xs), np.min(ys)
                 # 텍스트 그리기 (클래스 이름)
-                cv2.putText(annotated_frame, class_name, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2)
+                # cv2.putText(annotated_frame, class_name, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2)
 
     # 화면 출력
     cv2.imshow(f"YOLOv11 Webcam Segmentation (Conf >= {CONFIDENCE})", annotated_frame)
