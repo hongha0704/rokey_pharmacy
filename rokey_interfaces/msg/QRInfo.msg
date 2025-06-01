@@ -1,0 +1,2 @@
+string disease
+string[] pill

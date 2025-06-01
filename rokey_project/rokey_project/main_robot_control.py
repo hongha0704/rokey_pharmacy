@@ -6,6 +6,8 @@ import time
 from rokey_project.onrobot import RG
 
 from rokey_interfaces.msg import TaskState
+from rokey_interfaces.msg import RobotState
+from rokey_interfaces.msg import QRInfo
 from rclpy.node import Node
 
 # for single robot
@@ -94,10 +96,11 @@ Jdrawer_4_campose = posj(-0.74, 37.13, 41.93, 0.00, 100.28, -1.19)  # 서랍과 
 
 # 플래그 및 수신 데이터
 qr_data_received = False
-qr_data_value = None
+qr_disease = None
+qr_pill_list = None
 
 # robot_state publisher 생성
-publisher = node.create_publisher(TaskState, "/robot_state", 10)
+robot_state_publisher = node.create_publisher(RobotState, "/robot_state", 10)
 
 
 '''QR 코드 인식 위치로 이동하고 정보를 수신하는 함수'''
@@ -113,13 +116,13 @@ def move_check_qr():
     movesj([Jcheck_qr_waypoint, Jcheck_qr], vel=VELOCITY, acc=ACC)
 
     # QR code 정보를 수신하는 subscriber 생성
-    subscription = node.create_subscription(TaskState, "/qr_info", qr_callback, 10)
+    qr_info_subscription = node.create_subscription(QRInfo, "/qr_info", qr_callback, 10)
 
     # 'check_qr' 상태를 VisionNode에 퍼블리시
     node.get_logger().info(f"📤 'check_qr' 상태 퍼블리시 중...")
-    msg = TaskState()
-    msg.robot_state = "check_qr"
-    publisher.publish(msg)
+    robot_state_msg = RobotState()
+    robot_state_msg.robot_state = "check_qr"
+    robot_state_publisher.publish(robot_state_msg)
 
     # QR 정보가 들어올 때까지 대기
     node.get_logger().info("🕐 QR 정보 대기 중...")
@@ -130,16 +133,18 @@ def move_check_qr():
     time.sleep(2)
 
     # 더 이상 필요 없는 subscriber 제거
-    node.destroy_subscription(subscription)
+    node.destroy_subscription(qr_info_subscription)
 
 
 '''QR 정보를 수신하는 콜백 함수'''
 def qr_callback(msg):
-    global qr_data_received, qr_data_value
-    if msg.qr_info != "":
-        qr_data_value = msg.qr_info
+    global qr_data_received, qr_disease, qr_pill_list
+    if msg.disease != "":
+        qr_disease = msg.disease
+        qr_pill_list = msg.pill
         qr_data_received = True
-        node.get_logger().info(f"✅ QR 정보 수신: {qr_data_value}")
+        node.get_logger().info(f"✅ QR 정보 수신")
+        node.get_logger().info(f"💊 병: {qr_disease}, 약: {qr_pill_list}")
 
 
 '''서랍 텍스트 인식 위치로 이동하고 상태를 퍼블리시하는 함수'''
@@ -151,9 +156,9 @@ def move_check_text():
 
     # 'check_text' 상태를 VisionNode에 퍼블리시
     node.get_logger().info(f"📤 'check_text' 상태 퍼블리시 중...")
-    msg = TaskState()
-    msg.robot_state = "check_text"
-    publisher.publish(msg)
+    robot_state_msg = RobotState()
+    robot_state_msg.robot_state = "check_text"
+    robot_state_publisher.publish(robot_state_msg)
     time.sleep(0.5)
 
     node.get_logger().info(f"서랍 text 인식중...")
@@ -276,16 +281,36 @@ def open_drawer_4():
     movesj([Jdrawer_4_campose_waypoint_1, Jdrawer_4_campose_waypoint_2, Jdrawer_4_campose], vel=VELOCITY, acc=ACC)
 
 
+'''서랍 4개 중 하나를 선택하고 여는 함수'''
+def select_and_open_drawer():
+    global qr_disease
+    node.get_logger().info(f"💊 병: {qr_disease}, 약: {qr_pill_list}")
+
+    if qr_disease == 'diarrhea':
+        open_drawer_1()
+        publish_check_pill_state()
+
+    elif qr_disease == 'dyspepsia':
+        open_drawer_2()
+        publish_check_pill_state()
+
+    elif qr_disease == 'dermatitis':
+        open_drawer_3()
+        publish_check_pill_state()
+
+    elif qr_disease == 'cold':
+        open_drawer_4()
+        publish_check_pill_state()
+
+
 '''약 탐지 상태를 퍼블리시하는 함수'''
 def publish_check_pill_state():
-    node.get_logger().info(f"📤 'check_pill' 상태 퍼블리시 중...")
-    msg = TaskState()
-    msg.robot_state = "check_pill"
-    publisher.publish(msg)
+    node.get_logger().info(f"📤 'detect_pill' 상태 퍼블리시 중...")
+    robot_state_msg = RobotState()
+    robot_state_msg.robot_state = "detect_pill"
+    robot_state_publisher.publish(robot_state_msg)
     time.sleep(0.5)
 
-
-disease = 'dermatitis'
 
 def main(args=None):
 
@@ -293,22 +318,9 @@ def main(args=None):
     
     move_check_qr()
     move_check_text()
+    select_and_open_drawer()
 
-    if disease == 'diarrhea':
-        open_drawer_1()
-        publish_check_pill_state()
-
-    elif disease == 'dyspepsia':
-        open_drawer_2()
-        publish_check_pill_state()
-
-    elif disease == 'dermatitis':
-        open_drawer_3()
-        publish_check_pill_state()
-
-    elif disease == 'cold':
-        open_drawer_4()
-        publish_check_pill_state()
+    # publish_check_pill_state() ############ 테스트용 ############
 
     rclpy.shutdown()
 

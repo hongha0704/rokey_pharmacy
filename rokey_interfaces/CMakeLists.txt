@@ -15,8 +15,11 @@ ament_export_dependencies(rosidl_default_runtime)
 
 set(msg_files
   "msg/TaskState.msg"
+  "msg/RobotState.msg"
+  "msg/QRInfo.msg"
+  "msg/TextLoc.msg"
+  "msg/PillLoc.msg"
 )
-
 rosidl_generate_interfaces(${PROJECT_NAME}
   ${msg_files}
   DEPENDENCIES builtin_interfaces

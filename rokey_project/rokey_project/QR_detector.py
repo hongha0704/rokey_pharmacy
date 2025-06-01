@@ -10,7 +10,7 @@ class VisionNode(Node):
         self.publisher_ = self.create_publisher(TaskState, '/task_state', 10)
 
         # 카메라 번호 설정 (기본 웹캠: 0)
-        self.CAMERA_NUM = 4
+        self.CAMERA_NUM = 0
         self.qr_detector = cv2.QRCodeDetector()
         self.cap = cv2.VideoCapture(self.CAMERA_NUM)
 
