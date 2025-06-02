@@ -8,7 +8,6 @@ from rokey_project.onrobot import RG
 from rokey_interfaces.msg import TaskState
 from rokey_interfaces.msg import RobotState
 from rokey_interfaces.msg import QRInfo
-from rokey_interfaces.msg import PillLoc
 from rclpy.node import Node
 
 # for single robot
@@ -37,9 +36,6 @@ try:
         movej,
         movel,
         movesj,
-        get_current_posx,
-        task_compliance_ctrl,
-        release_compliance_ctrl,
     )
 
     from DR_common2 import posx, posj
@@ -103,14 +99,8 @@ qr_data_received = False
 qr_disease = None
 qr_pill_list = None
 
-# 약 위치 초기화
-x_base, y_base, theta = 0, 0, 0
-
 # robot_state publisher 생성
 robot_state_publisher = node.create_publisher(RobotState, "/robot_state", 10)
-
-# robot_current_posx publisher 생성
-robot_current_posx_publisher = node.create_publisher(RobotState, "/robot_current_posx", 10)
 
 
 '''QR 코드 인식 위치로 이동하고 정보를 수신하는 함수'''
@@ -297,107 +287,40 @@ def select_and_open_drawer():
     node.get_logger().info(f"💊 병: {qr_disease}, 약: {qr_pill_list}")
 
     if qr_disease == 'diarrhea':
-        node.get_logger().info(f"🗄️ 1번 서랍을 엽니다!")
         open_drawer_1()
         publish_check_pill_state()
 
     elif qr_disease == 'dyspepsia':
-        node.get_logger().info(f"🗄️ 2번 서랍을 엽니다!")
         open_drawer_2()
         publish_check_pill_state()
 
     elif qr_disease == 'dermatitis':
-        node.get_logger().info(f"🗄️ 3번 서랍을 엽니다!")
         open_drawer_3()
         publish_check_pill_state()
 
     elif qr_disease == 'cold':
-        node.get_logger().info(f"🗄️ 4번 서랍을 엽니다!")
         open_drawer_4()
         publish_check_pill_state()
 
 
-'''약 탐지 상태와 로봇의 current_posx를 퍼블리시하는 함수'''
+'''약 탐지 상태를 퍼블리시하는 함수'''
 def publish_check_pill_state():
-    # 'detect_pill' 상태를 VisionNode에 퍼블리시
     node.get_logger().info(f"📤 'detect_pill' 상태 퍼블리시 중...")
     robot_state_msg = RobotState()
     robot_state_msg.robot_state = "detect_pill"
     robot_state_publisher.publish(robot_state_msg)
     time.sleep(0.5)
 
-    # 로봇의 current_posx를 VisionNode에 퍼블리시
-    node.get_logger().info(f"📤 'current_posx' 퍼블리시 중...")
-    robot_current_posx_msg = RobotState()
-    robot_current_posx_msg.current_posx = get_current_posx()[0]
-    robot_current_posx_publisher.publish(robot_current_posx_msg)
-    time.sleep(0.5)
-
-
-'''약 위치와 자세 메시지를 subscribe하고, 약을 집는 함수'''
-def pick_pill():
-    VELOCITY, ACC = 100, 100
-    # 약의 위치와 자세 정보를 수신하는 subscriber 생성
-    pill_loc_subscription = node.create_subscription(PillLoc, "/pill_loc", pill_loc_callback, 10)
-    rclpy.spin_once(node, timeout_sec=0.1)
-    node.destroy_subscription(pill_loc_subscription)
-    time.sleep(1)
-
-    current_pos = get_current_posx()[0]
-    pick_pos = posx([x_base, y_base, current_pos[2], current_pos[3], current_pos[4], current_pos[5]])
-    print(f"x = {x_base}, y = {y_base}")
-    movel(pick_pos, vel=VELOCITY, acc=ACC)
-    movej([0, 0, 0, 0, 0, theta], vel=VELOCITY, acc=ACC, mod=1)
-
-    # 그리퍼 15mm 만큼 열기
-    gripper.move_gripper(150)
-    time.sleep(1)
-
-    # 약 있는 위치로 내리기
-    current_pos = get_current_posx()[0]
-    current_pos_down = posx([current_pos[0], current_pos[1], 10.27, current_pos[3], current_pos[4], current_pos[5]])
-    movel(current_pos_down, vel=VELOCITY, acc=ACC)
-
-    # 순응제어 on
-    task_compliance_ctrl(stx=[500, 500, 500, 100, 100, 100])
-    time.sleep(0.5)
-
-    # 그리퍼 8mm로 닫기
-    gripper.move_gripper(80)
-    time.sleep(0.5)
-
-    # 순응제어 off
-    release_compliance_ctrl()
-    time.sleep(0.5)
-
-    # 집고 z축으로 200mm 올리기
-    movel([0, 0, 200, 0, 0, 0], vel=VELOCITY, acc=VELOCITY, mod=1)
-
-    # 그리퍼 15mm 만큼 열기
-    gripper.move_gripper(150)
-
-
-'''약 위치 정보를 수신하는 콜백 함수'''
-def pill_loc_callback(msg):
-    global x_base, y_base, theta
-    x_base = msg.x
-    y_base = msg.y
-    theta = msg.theta
-    node.get_logger().info(f"✅ 약 위치, 자세 정보 수신")
-    node.get_logger().info(f"💊 x = {x_base}, y = {y_base}, theta = {theta}")
-
 
 def main(args=None):
 
-    # movej(JReady, vel=VELOCITY, acc=ACC)
+    movej(JReady, vel=VELOCITY, acc=ACC)
     
-    # move_check_qr()
-    # move_check_text()
-    # select_and_open_drawer()
-    # pick_pill()
+    move_check_qr()
+    move_check_text()
+    select_and_open_drawer()
 
-    # movej(Jdrawer_3_campose, vel=VELOCITY, acc=ACC)  ############ 테스트용 ############
-    publish_check_pill_state() ############ 테스트용 ############
+    # publish_check_pill_state() ############ 테스트용 ############
 
     rclpy.shutdown()
 

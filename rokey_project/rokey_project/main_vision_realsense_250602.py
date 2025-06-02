@@ -14,7 +14,6 @@ import os
 import numpy as np
 from ament_index_python.packages import get_package_share_directory
 from ultralytics import YOLO
-from scipy.spatial.transform import Rotation
 
 
 class VisionNode(Node):
@@ -25,27 +24,9 @@ class VisionNode(Node):
         # RealSense 이미지 노드 초기화
         self.img_node = ImgNode()
 
-        # 첫 프레임 받을 때까지 잠시 spin
-        self.get_logger().info("[INFO] RealSense 초기화 중...")
-        rclpy.spin_once(self.img_node)
-        self.get_logger().info("[INFO] RealSense 초기화 완료!")
-        time.sleep(0.5)
-
-        # 카메라 캘리브레이션 설정
-        self.intrinsics = self.img_node.get_camera_intrinsic()
-        while self.intrinsics is None:
-            self.get_logger().error("[ERROR] 카메라 intrinsic 정보를 불러오지 못했습니다.")
-            time.sleep(1)
-        current_dir = os.path.dirname(__file__)
-        file_path = os.path.join(current_dir, "T_gripper2camera.npy")
-        self.gripper2cam = np.load(file_path)
-
         # 로봇 상태 메시지 subscriber
-        self.robot_state_subscription = self.create_subscription(RobotState, '/robot_state', self.robot_state_callback, 10)
+        self.subscription = self.create_subscription(RobotState, '/robot_state', self.robot_state_callback, 10)
         
-        # 로봇 current_posx 메시지 subscriber
-        self.robot_current_posx_subscription = self.create_subscription(RobotState, '/robot_current_posx', self.robot_current_posx_callback, 10)
-
         # QR 코드 정보 publisher
         self.qr_info_publisher = self.create_publisher(QRInfo, '/qr_info', 10)
 
@@ -61,7 +42,6 @@ class VisionNode(Node):
 
         # 현재 로봇 상태 저장 변수
         self.robot_state = ''
-        self.robot_current_posx = []
 
         # QR 코드가 최초로 인식되었는지 여부
         self.qr_detected = False
@@ -74,12 +54,11 @@ class VisionNode(Node):
         # 약의 위치 및 각도를 저장하는 리스트 (x, y, theta)
         self.pill_loc = [0, 0, 0]
 
-
-    '''로봇 current_posx 메시지 수신 시 호출되는 콜백 함수'''
-    def robot_current_posx_callback(self, msg):
-        # robot current_posx 갱신
-        self.robot_current_posx = msg.current_posx
-        self.get_logger().info(f'📥 [Robot current_posx 수신] "{msg.current_posx}"')
+        # 첫 프레임 받을 때까지 잠시 spin
+        self.get_logger().info("[INFO] RealSense 초기화 중...")
+        rclpy.spin_once(self.img_node)
+        self.get_logger().info("[INFO] RealSense 초기화 완료!")
+        time.sleep(0.5)
 
 
     '''로봇 상태 메시지 수신 시 호출되는 콜백 함수'''
@@ -97,7 +76,7 @@ class VisionNode(Node):
         elif msg.robot_state == 'detect_pill':
             self.get_logger().info("[INFO] 카메라 알약 인식 시작...")
 
-            self.disease = 'dermatitis'  ############ 테스트용 ############
+            # self.disease = 'dermatitis'  ############ 테스트용 ############
 
             if self.disease == 'diarrhea':
                 self.yolo_weights = self.diarrhea_yolo_weights
@@ -205,10 +184,7 @@ class VisionNode(Node):
                     (center, axes, angle) = ellipse
 
                     # 타원 그리기
-                    if ellipse[1][0] > 0 and ellipse[1][1] > 0:
-                        cv2.ellipse(annotated_frame, ellipse, color, 2)
-                    else:
-                        print(f"[경고] 유효하지 않은 ellipse: {ellipse}")
+                    cv2.ellipse(annotated_frame, ellipse, color, 2)
                     # 회전 각도 텍스트 출력
                     angle_text = f"{angle:.1f} deg"
                     cv2.putText(annotated_frame, angle_text, (int(center[0]) + 35, int(center[1])), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
@@ -236,76 +212,15 @@ class VisionNode(Node):
             self.yolo_running = False
             self.get_logger().info("[INFO] YOLO 모델 메모리 해제 완료!")
 
-            # 약의 img 좌표를 robot base 좌표로 변환
-            x_base, y_base, z_base = self.coordinate_transformation(self.pill_loc[0], self.pill_loc[1])
-
             pill_loc_msg = PillLoc()
-            pill_loc_msg.x = int(x_base)
-            pill_loc_msg.y = int(y_base)
+            pill_loc_msg.x = self.pill_loc[0]
+            pill_loc_msg.y = self.pill_loc[1]
             pill_loc_msg.theta = self.pill_loc[2]
             self.pill_loc_publisher.publish(pill_loc_msg)
             self.get_logger().info(f"📤 Pill location publish: {pill_loc_msg}")
-            self.get_logger().info(f"📤 Pill location (x_base = {pill_loc_msg.x}, y_base = {pill_loc_msg.y}, theta = {pill_loc_msg.theta})")
+            self.get_logger().info(f"📤 Pill location (x = {pill_loc_msg.x}, y = {pill_loc_msg.y}, z = {pill_loc_msg.theta})")
 
         return annotated_frame
-    
-
-    '''img 좌표에서 robot base 좌표로 변환하는 함수'''
-    def coordinate_transformation(self, x, y):
-        depth_frame = self.img_node.get_depth_frame()
-        while depth_frame is None or np.all(depth_frame == 0):
-            self.get_logger().info("retry get depth img")
-            rclpy.spin_once(self.img_node)
-            depth_frame = self.img_node.get_depth_frame()
-
-        print(f"img cordinate: ({x}, {y})")
-        z = self.get_depth_value(x, y, depth_frame)
-        camera_center_pos = self.get_camera_pos(x, y, z, self.intrinsics)
-        print(f"camera cordinate: ({camera_center_pos})")
-
-        gripper_coordinate = self.transform_to_base(camera_center_pos)
-        print(f"gripper cordinate: ({gripper_coordinate})")
-
-        return gripper_coordinate
-
-    def get_depth_value(self, center_x, center_y, depth_frame):
-        height, width = depth_frame.shape
-        if 0 <= center_x < width and 0 <= center_y < height:
-            depth_value = depth_frame[center_y, center_x]
-            return depth_value
-        self.get_logger().warn(f"out of image range: {center_x}, {center_y}")
-        return None
-    
-    def get_camera_pos(self, center_x, center_y, center_z, intrinsics):
-        camera_x = (center_x - intrinsics["ppx"]) * center_z / intrinsics["fx"]
-        camera_y = (center_y - intrinsics["ppy"]) * center_z / intrinsics["fy"]
-        camera_z = center_z
-
-        return (camera_x, camera_y, camera_z)
-    
-    def transform_to_base(self, camera_coords):
-        """
-        Converts 3D coordinates from the camera coordinate system
-        to the robot's base coordinate system.
-        """
-        # gripper2cam = np.load(self.gripper2cam_path)
-        coord = np.append(np.array(camera_coords), 1)  # Homogeneous coordinate
-
-        base2gripper = self.get_robot_pose_matrix(*self.robot_current_posx)
-        timer = time.time()
-
-        base2cam = base2gripper @ self.gripper2cam
-        td_coord = np.dot(base2cam, coord)
-
-        return td_coord[:3]
-    
-    def get_robot_pose_matrix(self, x, y, z, rx, ry, rz):
-        R = Rotation.from_euler("ZYZ", [rx, ry, rz], degrees=True).as_matrix()
-        T = np.eye(4)
-        T[:3, :3] = R
-        T[:3, 3] = [x, y, z]
-        return T
-
 
 
     '''카메라 프레임을 주기적으로 처리하는 루프 함수'''
