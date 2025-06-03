@@ -143,6 +143,7 @@ qr_data_received = False
 qr_disease = None
 qr_pill_list = None
 qr_total_pills_count = 0
+detected_flag = False
 
 # 약 위치 초기화
 x_base, y_base, theta = 0, 0, 0
@@ -159,15 +160,34 @@ robot_state_publisher = node.create_publisher(RobotState, "/robot_state", 10)
 robot_current_posx_publisher = node.create_publisher(RobotState, "/robot_current_posx", 10)
 
 
+'''사람 감지 정보(초음파 센서)를 수신하는 콜백 함수'''
+def task_state_callback(msg):
+    global detected_flag
+    if msg.state == "detected":
+        detected_flag = True
+        node.get_logger().info("🔔 state='detected' 메시지 수신!")
+        
+
 '''QR 코드 인식 위치로 이동하고 정보를 수신하는 함수'''
 def move_check_qr():
     VELOCITY, ACC = 100, 100
-    global qr_data_received
+    global detected_flag, qr_data_received
     node.get_logger().info("========== 🏁 move_check_qr() 시작! ==========")
 
     # 홈위치
     movej(JReady, vel=VELOCITY, acc=ACC)
     gripper.move_gripper(300)
+
+    # 초음파 subscription 대기 -> state == "detected" break, 구독 시작
+    ultra_subscription = node.create_subscription(TaskState, '/task_state', task_state_callback, 10)
+
+    # 감지 대기 루프
+    node.get_logger().info("⏳ state='detected' 메시지 대기 중...")
+    while not detected_flag:
+        rclpy.spin_once(node, timeout_sec=0.1)
+
+    node.get_logger().info("✅사용자 감지됨")
+    time.sleep(1)
 
     # qr code 체크하는 위치로 이동
     movesj([Jcheck_qr_waypoint, Jcheck_qr], vel=VELOCITY, acc=ACC)
@@ -191,6 +211,7 @@ def move_check_qr():
 
     # 더 이상 필요 없는 subscriber 제거
     node.destroy_subscription(qr_info_subscription)
+    node.destroy_subscription(ultra_subscription)
     node.get_logger().info("========== 🏁 move_check_qr() 종료 ==========")
 
 
