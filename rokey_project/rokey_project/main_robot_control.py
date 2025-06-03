@@ -42,6 +42,8 @@ try:
         get_current_posx,
         task_compliance_ctrl,
         release_compliance_ctrl,
+        check_force_condition,
+        DR_AXIS_X, DR_TOOL,
     )
 
     from DR_common2 import posx, posj
@@ -104,6 +106,37 @@ Jpill_pouch_morning = posj(-57.74, -3.45, 112.01, -0.24, 71.29, -57.01)
 Jpill_pouch_afternoon = posj(-52.54, -9.25, 117.53, 0.27, 71.57, -51.60)
 Jpill_pouch_evening = posj(-45.24, -15.29, 122.61, -0.20, 72.47, -44.57)
 
+# 서랍장 1 닫는 pos
+Jclose_drawer_1_before = posj(16.31, 27.14, 70.41, -0.25, 83.05, 16.21)
+Jclose_drawer_1 = posj(16.47, 28.58, 74.62, -0.25, 77.93, 16.22)
+Jclose_drawer_1_waypoint_1 = posj(16.19, 30.73, 65.18, -0.26, 85.55, 15.70)
+Jclose_drawer_1_waypoint_2 = posj(16.41, 33.27, 74.73, -0.26, 73.70, 15.70)
+Xclose_drawer_1_finish = [626.14, 166.47, 240.26, 24.46, -178.07, 23.70]
+
+# 서랍장 2 닫는 pos
+Jclose_drawer_2_before = posj(5.32, 23.49, 75.73, -0.14, 80.71, 5.50)
+Jclose_drawer_2 = posj(5.47, 24.73, 80.54, -0.14, 74.38, 5.50)
+Jclose_drawer_2_waypoint_1 = posj(5.07, 27.96, 69.19, -0.12, 82.79, 4.88)
+Jclose_drawer_2_waypoint_2 = posj(5.09, 30.05, 79.43, -0.12, 70.94, 4.88)
+Xclose_drawer_2_finish = [617.19, 53.66, 14.59, 17.79, -179.33, 17.57]
+
+# 서랍장 3 닫는 pos
+Jclose_drawer_3_before = posj(16.28, 27.04, 57.88, 0.01, 95.40, 15.43)
+Jclose_drawer_3 = posj(16.35, 27.34, 61.80, 0.01, 91.45, 15.43)
+Jclose_drawer_3_waypoint_1 = posj(14.26, 33.54, 48.20, -0.21, 99.02, 12.43)
+Jclose_drawer_3_waypoint_2 = posj(14.64, 33.18, 61.54, -0.22, 86.20, 12.68)
+Xclose_drawer_3_finish = [622.89, 152.01, 94.94, 26.84, -178.81, 24.90]
+
+# 서랍장 4 닫는 pos
+Jclose_drawer_4_before = posj(5.02, 22.61, 62.98, -0.09, 94.10, 3.59)
+Jclose_drawer_4 = posj(5.35, 22.61, 69.38, -0.09, 87.79, 3.59)
+Jclose_drawer_4_waypoint_1 = posj(4.57, 30.89, 50.01, -0.08, 99.06, 2.70)
+Jclose_drawer_4_waypoint_2 = posj(4.57, 29.28, 67.09, -0.08, 83.98, 2.70)
+Xclose_drawer_4_finish = [620.25, 50.17, 99.27, 15.96, -179.43, 14.11]
+
+# 약봉지를 종이 봉투에 넣어주는 pos
+Jput_pill_in_bag_waypoint = posj(83.86, -4.41, 97.21, -0.70, 87.08, 0.00)
+Xput_pill_in_bag = [39.54, 348.45, 30.77, 6.09, 179.24, -77.56]
 
 # 플래그 및 수신 데이터
 qr_data_received = False
@@ -320,7 +353,6 @@ def open_drawer_4():
     VELOCITY, ACC = 100, 100
     node.get_logger().info("========== 🏁 open_drawer_4() 시작! ==========")
 
-    
     # 그리퍼 열기(30mm)
     gripper.move_gripper(300)
 
@@ -351,36 +383,26 @@ def open_drawer_4():
 def select_and_open_drawer():
     node.get_logger().info("========== 🏁 select_and_open_drawer() 시작! ==========")
 
-    global qr_disease
     global text_loc
     node.get_logger().info(f"💊 병: {qr_disease}, 약: {qr_pill_list}")
 
-    # if qr_disease == 'diarrhea':
     if text_loc == 1:
         node.get_logger().info(f"🗄️  1번 서랍을 엽니다!")
         open_drawer_1()
-        # publish_check_pill_state()
 
-    # elif qr_disease == 'dyspepsia':
     elif text_loc == 2:
         node.get_logger().info(f"🗄️  2번 서랍을 엽니다!")
         open_drawer_2()
-        # publish_check_pill_state()
 
-    # elif qr_disease == 'dermatitis':
     elif text_loc == 3:
         node.get_logger().info(f"🗄️  3번 서랍을 엽니다!")
         open_drawer_3()
-        # publish_check_pill_state()
 
-    # elif qr_disease == 'cold':
     elif text_loc == 4:
         node.get_logger().info(f"🗄️  4번 서랍을 엽니다!")
         open_drawer_4()
-        # publish_check_pill_state()
 
 
-'''추가'''
 '''서랍장 위 약을 인식하는 자세로 이동하는 함수'''
 def move_drawer_campose():
     global text_loc
@@ -396,7 +418,6 @@ def move_drawer_campose():
 
     elif text_loc == 4:
         movej(Jdrawer_4_campose, vel=VELOCITY, acc=ACC)
-
 
 
 '''약 탐지 상태와 로봇의 current_posx를 퍼블리시하는 함수'''
@@ -441,13 +462,13 @@ def pick_pill():
     time.sleep(1)
 
     # 서랍의 위치 별 z값 설정
-    qr_disease = 'dermatitis'   ## 테스트용 변수설정
     if qr_disease == 'diarrhea':
         z = 24.09
     if qr_disease == 'dyspepsia':
         z = 24.12
     elif qr_disease == 'dermatitis':
         z = 111.63
+        z = 115.63
     elif qr_disease == 'cold':
         z = 111.23
     node.get_logger().info(f"💊 x = {x_base}, y = {y_base}, z = {z}")
@@ -509,7 +530,7 @@ def pill_loc_callback(msg):
 
 '''약을 약 봉투 위치에 place하는 함수'''
 def place_pill():
-    VELOCITY, ACC = 50, 50
+    VELOCITY, ACC = 100, 100
     node.get_logger().info("========== 🏁 place_pill() 시작! ==========")
 
     global pill_name, index, total
@@ -526,24 +547,234 @@ def place_pill():
     node.get_logger().info(f"📦 {pill_name} {index+1}/{total} → {target}")
     movesj([JReady, target], vel=VELOCITY, acc=ACC)
 
-    # movesj([JReady, Jpill_pouch_morning], vel=VELOCITY, acc=ACC)
-    # movej(Jpill_pouch_morning, vel=VELOCITY, acc=ACC)
-    # # movej(Jpill_pouch_afternoon, vel=VELOCITY, acc=ACC)
-    # # movej(Jpill_pouch_evening, vel=VELOCITY, acc=ACC)
-    # time.sleep(0.5)
-
     # 그리퍼 15mm 만큼 열기
     gripper.move_gripper(150)
     time.sleep(1)
-    movej(JReady, vel=VELOCITY, acc=ACC)
 
     node.get_logger().info("========== 🏁 place_pill() 종료 ==========")
+
+
+'''서랍 4개 중 하나를 선택하고 닫는 함수'''
+def select_and_close_drawer():
+    node.get_logger().info("========== 🏁 select_and_close_drawer() 시작! ==========")
+
+    global text_loc
+
+    if text_loc == 1:
+        node.get_logger().info(f"🗄️  1번 서랍을 닫습니다!")
+        close_drawer_1()
+
+    elif text_loc == 2:
+        node.get_logger().info(f"🗄️  2번 서랍을 닫습니다!")
+        close_drawer_2()
+
+    elif text_loc == 3:
+        node.get_logger().info(f"🗄️  3번 서랍을 닫습니다!")
+        close_drawer_3()
+
+    elif text_loc == 4:
+        node.get_logger().info(f"🗄️  4번 서랍을 닫습니다!")
+        close_drawer_4()
+
+
+'''서랍장1 close motion'''
+def close_drawer_1():
+    VELOCITY, ACC = 100, 100
+    node.get_logger().info("========== 🏁 close_drawer_1() 시작! ==========")
+
+    # 그리퍼 열기(30mm)
+    gripper.move_gripper(300)
+
+    # 서랍장 닫는 위치로 이동
+    movesj([JReady, Jclose_drawer_1_before, Jclose_drawer_1], vel=VELOCITY, acc=ACC)
+
+    # 서랍장 집기 (그리퍼 17mm)
+    gripper.move_gripper(170)
+    time.sleep(1)
+
+    # 서랍장 살짝 들기 (z축 4mm, x축 -4mm)
+    movel([-4.0, 0, 4.0, 0, 0, 0], vel=50, acc=50, mod=1)
+    time.sleep(0.5)
+
+    # 서랍장 넣기 (x축 80mm)
+    movel([80.0, 0, 0, 0, 0, 0], vel=30, acc=30, mod=1)
+
+    # 서랍장 놓기 (그리퍼 30mm)
+    gripper.move_gripper(300)
+    time.sleep(0.5)
+
+    # 서랍장 놓고 뒤로 위로 빠지기 (z축 40mm)
+    movel([0, 0, 40.0, 0, 0, 0], vel=50, acc=50, mod=1)
+
+    # 서랍장 닫기 마무리
+    movesj([Jclose_drawer_1_waypoint_1, Jclose_drawer_1_waypoint_2], vel=VELOCITY, acc=ACC)
+    movel(Xclose_drawer_1_finish, vel=30, acc=30)
+
+    movej(JReady, vel=VELOCITY, acc=ACC)
+
+    node.get_logger().info("========== 🏁 close_drawer_1() 종료 ==========")
+
+
+'''서랍장2 close motion'''
+def close_drawer_2():
+    VELOCITY, ACC = 100, 100
+    node.get_logger().info("========== 🏁 close_drawer_2() 시작! ==========")
+
+    # 그리퍼 열기(30mm)
+    gripper.move_gripper(300)
+
+    # 서랍장 닫는 위치로 이동
+    movesj([JReady, Jclose_drawer_2_before, Jclose_drawer_2], vel=VELOCITY, acc=ACC)
+
+    # 서랍장 집기 (그리퍼 17mm)
+    gripper.move_gripper(170)
+    time.sleep(1)
+
+    # 서랍장 살짝 들기 (z축 4mm, x축 4mm)
+    movel([4.0, 0, 4.0, 0, 0, 0], vel=50, acc=50, mod=1)
+    time.sleep(0.5)
+
+    # 서랍장 넣기 (x축 80mm)
+    movel([80.0, 0, 0, 0, 0, 0], vel=30, acc=30, mod=1)
+
+    # 서랍장 놓기 (그리퍼 30mm)
+    gripper.move_gripper(300)
+    time.sleep(0.5)
+
+    # 서랍장 놓고 뒤로 위로 빠지기 (z축 40mm)
+    movel([0, 0, 40.0, 0, 0, 0], vel=50, acc=50, mod=1)
+
+    # 서랍장 닫기 마무리
+    movesj([Jclose_drawer_2_waypoint_1, Jclose_drawer_2_waypoint_2], vel=VELOCITY, acc=ACC)
+    movel(Xclose_drawer_2_finish, vel=30, acc=30)
+
+    movej(JReady, vel=VELOCITY, acc=ACC)
+
+    node.get_logger().info("========== 🏁 close_drawer_2() 종료 ==========")
+
+
+'''서랍장3 close motion'''
+def close_drawer_3():
+    VELOCITY, ACC = 100, 100
+    node.get_logger().info("========== 🏁 close_drawer_3() 시작! ==========")
+
+    # 그리퍼 열기(30mm)
+    gripper.move_gripper(300)
+
+    # 서랍장 닫는 위치로 이동
+    movesj([JReady, Jclose_drawer_3_before, Jclose_drawer_3], vel=VELOCITY, acc=ACC)
+
+    # 서랍장 집기 (그리퍼 17mm)
+    gripper.move_gripper(170)
+    time.sleep(1)
+
+    # 서랍장 살짝 들기 (z축 4mm, x축 -4mm)
+    movel([-4.0, 0, 4.0, 0, 0, 0], vel=50, acc=50, mod=1)
+    time.sleep(0.5)
+
+    # 서랍장 넣기 (x축 100mm)
+    movel([100.0, 0, 0, 0, 0, 0], vel=30, acc=30, mod=1)
+
+    # 서랍장 놓기 (그리퍼 30mm)
+    gripper.move_gripper(300)
+    time.sleep(0.5)
+
+    # 서랍장 놓고 뒤로 위로 빠지기 (z축 40mm)
+    movel([0, 0, 40.0, 0, 0, 0], vel=50, acc=50, mod=1)
+
+    # 서랍장 닫기 마무리
+    movesj([Jclose_drawer_3_waypoint_1, Jclose_drawer_3_waypoint_2], vel=VELOCITY, acc=ACC)
+    movel(Xclose_drawer_3_finish, vel=30, acc=30)
+
+    movej(JReady, vel=VELOCITY, acc=ACC)
+
+    node.get_logger().info("========== 🏁 close_drawer_3() 종료 ==========")
+
+
+'''서랍장4 close motion'''
+def close_drawer_4():
+    VELOCITY, ACC = 100, 100
+    node.get_logger().info("========== 🏁 close_drawer_4() 시작! ==========")
+
+    # 그리퍼 열기(30mm)
+    gripper.move_gripper(300)
+
+    # 서랍장 닫는 위치로 이동
+    movesj([JReady, Jclose_drawer_4_before, Jclose_drawer_4], vel=VELOCITY, acc=ACC)
+
+    # 서랍장 집기 (그리퍼 17mm)
+    gripper.move_gripper(170)
+    time.sleep(1)
+
+    # 서랍장 살짝 들기 (z축 4mm, x축 4mm)
+    movel([4.0, 0, 4.0, 0, 0, 0], vel=50, acc=50, mod=1)
+    time.sleep(0.5)
+
+    # 서랍장 넣기 (x축 100mm)
+    movel([100.0, 0, 0, 0, 0, 0], vel=30, acc=30, mod=1)
+
+    # 서랍장 놓기 (그리퍼 30mm)
+    gripper.move_gripper(300)
+    time.sleep(0.5)
+
+    # 서랍장 놓고 뒤로 위로 빠지기 (z축 40mm)
+    movel([0, 0, 40.0, 0, 0, 0], vel=50, acc=50, mod=1)
+
+    # 서랍장 닫기 마무리
+    movesj([Jclose_drawer_4_waypoint_1, Jclose_drawer_4_waypoint_2], vel=VELOCITY, acc=ACC)
+    movel(Xclose_drawer_4_finish, vel=30, acc=30)
+
+    movej(JReady, vel=VELOCITY, acc=ACC)
+
+    node.get_logger().info("========== 🏁 close_drawer_4() 종료 ==========")
+
+
+'''처방한 약봉지를 종이 봉투에 넣어주는 함수'''
+def put_pill_in_bag():
+    VELOCITY, ACC = 100, 100
+    node.get_logger().info("========== 🏁 put_pill_in_bag() 시작! ==========")
+
+    # 홈위치에서 대기
+    movej([0, 0, 90, -30, 90, 0], vel=VELOCITY, acc=ACC)
+
+    # 그리퍼 열기 (10mm)
+    gripper.move_gripper(100)
+
+    # x 방향에 외력이 가해질 때까지 대기
+    print("약을 그리퍼에 넣고 로봇을 쳐주세요! (x방향)")
+    val_x = check_force_condition(DR_AXIS_X, 10, 30, DR_TOOL)
+
+    while True:
+        val_x = check_force_condition(DR_AXIS_X, 10, 30, DR_TOOL)
+
+        # x 방향으로 쳤을 때 약 봉투 포장 시작
+        if val_x == 0:
+            print(f"check_force_condition X: {val_x}")
+            print("약 포장을 시작합니다.")
+            break
+        
+    # 그리퍼 닫기 (3mm)
+    time.sleep(0.5)
+    gripper.move_gripper(30)
+    time.sleep(1)
+
+    # 약 종이 봉투에 담기
+    movej(Jput_pill_in_bag_waypoint, vel=50, acc=50)
+    movel(Xput_pill_in_bag, vel=VELOCITY, acc=ACC)
+
+    # 그리퍼 열기 (20mm)
+    gripper.move_gripper(200)
+    time.sleep(1)
+
+    # 홈으로
+    movej(Jput_pill_in_bag_waypoint, vel=VELOCITY, acc=ACC)
+    movej([0, 0, 90, 0, 90, 0], vel=VELOCITY, acc=ACC)
+
 
 
 def main(args=None):
     global qr_total_pills_count
 
-    '''추가'''
     move_check_qr()
     move_check_text()
     select_and_open_drawer()
@@ -552,22 +783,9 @@ def main(args=None):
         publish_check_pill_state()
         pick_pill()
         place_pill()
+    select_and_close_drawer()
+    put_pill_in_bag()
     movej(JReady, vel=VELOCITY, acc=ACC)
-    
-
-    ############ 선반3 테스트용  ############
-    # movej(Jdrawer_3_campose, vel=VELOCITY, acc=ACC)
-
-    # publish_check_pill_state()
-    # pick_pill()
-    # place_pill()
-    
-    # movej(Jdrawer_3_campose, vel=VELOCITY, acc=ACC)
-
-    ############ 선반3 테스트용 ############
-
-    # movej(JReady, vel=VELOCITY, acc=ACC)
-    # open_drawer_4()
 
     rclpy.shutdown()
 
