@@ -109,7 +109,6 @@ Jpill_pouch_evening = posj(-45.24, -15.29, 122.61, -0.20, 72.47, -44.57)
 qr_data_received = False
 qr_disease = None
 qr_pill_list = None
-qr_total_pills_count = 0
 
 # 약 위치 초기화
 x_base, y_base, theta = 0, 0, 0
@@ -130,7 +129,6 @@ robot_current_posx_publisher = node.create_publisher(RobotState, "/robot_current
 def move_check_qr():
     VELOCITY, ACC = 100, 100
     global qr_data_received
-    node.get_logger().info("========== 🏁 move_check_qr() 시작! ==========")
 
     # 홈위치
     movej(JReady, vel=VELOCITY, acc=ACC)
@@ -158,27 +156,22 @@ def move_check_qr():
 
     # 더 이상 필요 없는 subscriber 제거
     node.destroy_subscription(qr_info_subscription)
-    node.get_logger().info("========== 🏁 move_check_qr() 종료 ==========")
 
 
 '''QR 정보를 수신하는 콜백 함수'''
 def qr_callback(msg):
-    global qr_data_received, qr_disease, qr_pill_list, qr_total_pills_count
+    global qr_data_received, qr_disease, qr_pill_list
     if msg.disease != "":
         qr_disease = msg.disease
         qr_pill_list = msg.pill
-        qr_total_pills_count = msg.total_pills_count
         qr_data_received = True
-        node.get_logger().info(f"========== ✅ QR 정보 수신 ==========")
+        node.get_logger().info(f"✅ QR 정보 수신")
         node.get_logger().info(f"💊 병: {qr_disease}, 약: {qr_pill_list}")
-        node.get_logger().info(f"💊 처방할 약의 총 개수: {qr_total_pills_count}")
-        node.get_logger().info("========== QR 정보 수신 완료 ==========")
 
 
 '''서랍 텍스트 인식 위치로 이동하고 상태를 퍼블리시하는 함수'''
 def move_check_text():
     VELOCITY, ACC = 100, 100
-    node.get_logger().info("========== 🏁 move_check_text() 시작! ==========")
 
     # 텍스트 인식 위치로 이동
     movesj([Jcheck_text_waypoint, Jcheck_text], vel=VELOCITY, acc=ACC)
@@ -209,23 +202,18 @@ def move_check_text():
     robot_state_publisher.publish(robot_state_msg)
     time.sleep(0.5)
 
-    node.get_logger().info("========== 🏁 move_check_text() 종료 ==========")
-
 
 '''text_loc 정보를 수신하는 콜백 함수'''
 def text_loc_callback(msg):
     global text_loc, text_loc_data_received
     text_loc_data_received = True
     text_loc = msg.text_loc
-    node.get_logger().info(f"========== ✅ text location 수신 ==========")
     node.get_logger().info(f"📥 text_loc 수신됨: 서랍 번호 [{text_loc}]")
-    node.get_logger().info("========== text location 수신 완료 ==========")
 
 
 '''서랍장1 open motion'''
 def open_drawer_1():
     VELOCITY, ACC = 100, 100
-    node.get_logger().info("========== 🏁 open_drawer_1() 시작! ==========")
 
     # 그리퍼 열기(30mm)
     gripper.move_gripper(300)
@@ -249,14 +237,11 @@ def open_drawer_1():
 
     # 서랍장 cam pose로 이동
     movesj([Jdrawer_1_campose_waypoint_1, Jdrawer_1_campose_waypoint_2, Jdrawer_1_campose], vel=VELOCITY, acc=ACC)
-    
-    node.get_logger().info("========== 🏁 open_drawer_1() 종료 ==========")
 
 
 '''서랍장2 open motion'''
 def open_drawer_2():
     VELOCITY, ACC = 100, 100
-    node.get_logger().info("========== 🏁 open_drawer_2() 시작! ==========")
 
     # 그리퍼 열기(30mm)
     gripper.move_gripper(300)
@@ -280,14 +265,11 @@ def open_drawer_2():
 
     # 서랍장 cam pose로 이동
     movesj([Jdrawer_2_campose_waypoint_1, Jdrawer_2_campose_waypoint_2, Jdrawer_2_campose], vel=VELOCITY, acc=ACC)
-    
-    node.get_logger().info("========== 🏁 open_drawer_2() 종료 ==========")
 
 
 '''서랍장3 open motion'''
 def open_drawer_3():
     VELOCITY, ACC = 100, 100
-    node.get_logger().info("========== 🏁 open_drawer_3() 시작! ==========")
 
     # 그리퍼 열기(30mm)
     gripper.move_gripper(300)
@@ -311,15 +293,11 @@ def open_drawer_3():
 
     # 서랍장 cam pose로 이동
     movesj([Jdrawer_3_campose_waypoint_1, Jdrawer_3_campose_waypoint_2, Jdrawer_3_campose], vel=VELOCITY, acc=ACC)
-    
-    node.get_logger().info("========== 🏁 open_drawer_3() 종료 ==========")
 
 
 '''서랍장4 open motion'''
 def open_drawer_4():
     VELOCITY, ACC = 100, 100
-    node.get_logger().info("========== 🏁 open_drawer_4() 시작! ==========")
-
     
     # 그리퍼 열기(30mm)
     gripper.move_gripper(300)
@@ -343,14 +321,10 @@ def open_drawer_4():
 
     # 서랍장 cam pose로 이동
     movesj([Jdrawer_4_campose_waypoint_1, Jdrawer_4_campose_waypoint_2, Jdrawer_4_campose], vel=VELOCITY, acc=ACC)
-    
-    node.get_logger().info("========== 🏁 open_drawer_4() 종료 ==========")
 
 
 '''서랍 4개 중 하나를 선택하고 여는 함수'''
 def select_and_open_drawer():
-    node.get_logger().info("========== 🏁 select_and_open_drawer() 시작! ==========")
-
     global qr_disease
     global text_loc
     node.get_logger().info(f"💊 병: {qr_disease}, 약: {qr_pill_list}")
@@ -359,50 +333,29 @@ def select_and_open_drawer():
     if text_loc == 1:
         node.get_logger().info(f"🗄️  1번 서랍을 엽니다!")
         open_drawer_1()
-        # publish_check_pill_state()
+        publish_check_pill_state()
 
     # elif qr_disease == 'dyspepsia':
     elif text_loc == 2:
         node.get_logger().info(f"🗄️  2번 서랍을 엽니다!")
         open_drawer_2()
-        # publish_check_pill_state()
+        publish_check_pill_state()
 
     # elif qr_disease == 'dermatitis':
     elif text_loc == 3:
         node.get_logger().info(f"🗄️  3번 서랍을 엽니다!")
         open_drawer_3()
-        # publish_check_pill_state()
+        publish_check_pill_state()
 
     # elif qr_disease == 'cold':
     elif text_loc == 4:
         node.get_logger().info(f"🗄️  4번 서랍을 엽니다!")
         open_drawer_4()
-        # publish_check_pill_state()
-
-
-'''추가'''
-'''서랍장 위 약을 인식하는 자세로 이동하는 함수'''
-def move_drawer_campose():
-    global text_loc
-
-    if text_loc == 1:
-        movej(Jdrawer_1_campose, vel=VELOCITY, acc=ACC)
-
-    elif text_loc == 2:
-        movej(Jdrawer_2_campose, vel=VELOCITY, acc=ACC)
-
-    elif text_loc == 3:
-        movej(Jdrawer_3_campose, vel=VELOCITY, acc=ACC)
-
-    elif text_loc == 4:
-        movej(Jdrawer_4_campose, vel=VELOCITY, acc=ACC)
-
+        publish_check_pill_state()
 
 
 '''약 탐지 상태와 로봇의 current_posx를 퍼블리시하는 함수'''
 def publish_check_pill_state():
-    node.get_logger().info("========== 🏁 publish_check_pill_state() 시작! ==========")
-
     # 'detect_pill' 상태를 VisionNode에 퍼블리시
     node.get_logger().info(f"📤 'detect_pill' 상태 퍼블리시 중...")
     robot_state_msg = RobotState()
@@ -415,16 +368,11 @@ def publish_check_pill_state():
     robot_current_posx_msg.current_posx = get_current_posx()[0]
     robot_current_posx_publisher.publish(robot_current_posx_msg)
 
-    node.get_logger().info("========== 🏁 publish_check_pill_state() 종료 ==========")
-
 
 '''약 위치와 자세 메시지를 subscribe하고, 약을 집는 함수'''
 def pick_pill():
     VELOCITY, ACC = 100, 100
-    node.get_logger().info("========== 🏁 pick_pill() 시작! ==========")
-    
     global x_base, y_base, theta, qr_disease
-    x_base, y_base, theta = 0, 0, 0  # 초기화
 
     # 약의 위치와 자세 정보를 수신하는 subscriber 생성
     pill_loc_subscription = node.create_subscription(PillLoc, "/pill_loc", pill_loc_callback, 10)
@@ -433,11 +381,8 @@ def pick_pill():
     while not x_base:
         rclpy.spin_once(node, timeout_sec=0.1)
     node.destroy_subscription(pill_loc_subscription)
-
-    robot_state_msg = RobotState()
-    robot_state_msg.robot_state = "pick_pill"
-    robot_state_publisher.publish(robot_state_msg)
-    node.get_logger().info(f"📤 'pick_pill' 상태 퍼블리시 중...")
+    
+    node.get_logger().info(f"📤 'detect_pill' 상태 퍼블리시 중...")
     time.sleep(1)
 
     # 서랍의 위치 별 z값 설정
@@ -482,8 +427,6 @@ def pick_pill():
     # 집고 z축으로 200mm 올리기
     movel([0, 0, 80, 0, 0, 0], vel=VELOCITY, acc=VELOCITY, mod=1)
 
-    node.get_logger().info("========== 🏁 pick_pill() 종료 ==========")
-
 
 '''약 위치 정보를 수신하는 콜백 함수'''
 def pill_loc_callback(msg):
@@ -500,19 +443,14 @@ def pill_loc_callback(msg):
     if theta > 90:
         theta -= 180
 
-    node.get_logger().info(f"========== ✅ 약 위치, 자세 정보 수신 ==========")
+    node.get_logger().info(f"✅ 약 위치, 자세 정보 수신 완료")
     node.get_logger().info(f"💊 x = {x_base}, y = {y_base}, theta = {theta}")
     node.get_logger().info(f"📥 {pill_name} 위치 수신: index={index+1}/{total}")
 
-    node.get_logger().info("========== 약 위치, 자세 정보 수신 완료 ==========")
-
 
 '''약을 약 봉투 위치에 place하는 함수'''
-def place_pill():
+def place_pill(pill_name, index, total):
     VELOCITY, ACC = 50, 50
-    node.get_logger().info("========== 🏁 place_pill() 시작! ==========")
-
-    global pill_name, index, total
 
     if total == 1:
         target = Jpill_pouch_afternoon
@@ -537,22 +475,15 @@ def place_pill():
     time.sleep(1)
     movej(JReady, vel=VELOCITY, acc=ACC)
 
-    node.get_logger().info("========== 🏁 place_pill() 종료 ==========")
 
 
 def main(args=None):
-    global qr_total_pills_count
 
-    '''추가'''
     move_check_qr()
     move_check_text()
     select_and_open_drawer()
-    for _ in range(qr_total_pills_count):
-        move_drawer_campose()
-        publish_check_pill_state()
-        pick_pill()
-        place_pill()
-    movej(JReady, vel=VELOCITY, acc=ACC)
+    pick_pill()
+    place_pill(pill_name, index, total)
     
 
     ############ 선반3 테스트용  ############
@@ -565,9 +496,6 @@ def main(args=None):
     # movej(Jdrawer_3_campose, vel=VELOCITY, acc=ACC)
 
     ############ 선반3 테스트용 ############
-
-    # movej(JReady, vel=VELOCITY, acc=ACC)
-    # open_drawer_4()
 
     rclpy.shutdown()
 

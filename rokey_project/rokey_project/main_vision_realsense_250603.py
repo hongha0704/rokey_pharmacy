@@ -74,11 +74,6 @@ class VisionNode(Node):
         # QR 코드가 최초로 인식되었는지 여부
         self.qr_detected = False
         self.detected_diseases = []
-
-        '''추가'''
-        # 집어야 하는 약의 리스트 (예: ['monodoxy_cap', 'monodoxy_cap', 'monodoxy_cap', 'ganakhan_tab', 'ganakhan_tab'])
-        self.pill_list = []
-        self.pill_list_index = 0
         
         # text_loc가 최초로 인식되었는지 여부
         self.text_loc_detected = False
@@ -126,9 +121,6 @@ class VisionNode(Node):
                 self.yolo_weights = self.cold_yolo_weights
 
             self.load_yolo_model()
-
-        elif msg.robot_state == 'pick_pill':
-            self.get_logger().info("[INFO] 로봇 pick pill 시작...")
             
 
     '''QR 코드를 탐지하고 시각화하는 함수'''
@@ -159,8 +151,6 @@ class VisionNode(Node):
         drug_to_symptom = {
             "nexilen_tab": "dermatitis",
             "magmil_tab": "dermatitis",
-            "monodoxy_cap": "dermatitis",
-            "ganakan_tab": "dermatitis",
             "medilacsenteric_tab": "dyspepsia",
             "samsung_octylonium_tab": "diarrhea",
             "famodine": "diarrhea",
@@ -168,6 +158,8 @@ class VisionNode(Node):
             "panstar_tab": "cold",
             "amoxicle_tab": "cold",
             "sudafed_tab": "cold",
+            "monodoxy_cap": "dermatitis",
+            "ganakan_tab": "dermatitis"
         }
 
         # QR 코드가 인식되었을 때
@@ -178,7 +170,8 @@ class VisionNode(Node):
                 pt1 = tuple(points[i])
                 pt2 = tuple(points[(i + 1) % len(points)])
                 cv2.line(frame, pt1, pt2, (0, 255, 0), 2)
-            cv2.putText(frame, data, (points[0][0], points[0][1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 0), 2)
+            cv2.putText(frame, data, (points[0][0], points[0][1] - 10),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 0), 2)
 
             # QR 코드가 처음 인식된 경우에만 퍼블리시
             if not self.qr_detected:
@@ -231,6 +224,13 @@ class VisionNode(Node):
                                 calculated_dosages.append("0")
                         except ValueError:
                             calculated_dosages.append("0")
+                    # 메시지에 담아 publish
+                    qr_msg = QRInfo()
+                    qr_msg.disease = symptom
+                    qr_msg.pill = pills
+                    qr_msg.dosages = calculated_dosages
+                    self.qr_info_publisher.publish(qr_msg)
+                    self.get_logger().info(f"📤 QR info publish: 병={symptom}, 약={pills}, 복용={calculated_dosages}")
 
                     for pill, dosage in zip(pills, calculated_dosages):
                         if pill not in self.required_pills:
@@ -238,35 +238,15 @@ class VisionNode(Node):
                         self.required_counts[pill] = int(dosage) if dosage.isdigit() else 0
                     self.get_logger().info(f"📦 필요한 약 목록: {self.required_pills}")
                     self.get_logger().info(f"📦 약별 필요한 개수: {self.required_counts}")
-
-                    '''추가'''
-                    # 집어야 하는 약의 리스트 생성 (예: ['monodoxy_cap', 'monodoxy_cap', 'monodoxy_cap', 'ganakhan_tab', 'ganakhan_tab'])
-                    for pill_name in self.required_pills:
-                        for _ in range(self.required_counts[pill_name]):
-                            self.pill_list.append(pill_name)
-                    print(f'self.pill_list = {self.pill_list}')
-
-                    # 메시지에 담아 publish
-                    qr_msg = QRInfo()
-                    qr_msg.disease = symptom
-                    qr_msg.pill = pills
-                    qr_msg.dosages = calculated_dosages
-                    qr_msg.total_pills_count = len(self.pill_list)
-                    self.qr_info_publisher.publish(qr_msg)
-                    self.get_logger().info(f"📤 QR info publish: 병{symptom}, 약={pills}, 복용={calculated_dosages}")
-                    self.get_logger().info(f"📤 QR info publish: 총 처방할 약의 개수 = {qr_msg.total_pills_count}")
-
         return frame
 
-
-    '''서랍의 text를 classification하는 함수'''
     def load_text_model(self, frame):
         # 📌 설정
         package_share_directory = get_package_share_directory('rokey_project')
 
         CLASSIFIER_PATH = os.path.join(package_share_directory, 'weights', 'text_classifier.pth')
         CLASSIFICATION_SIZE = (64, 128)
-        CONFIDENCE = 0.75
+        CONFIDENCE = 0.80
 
         # 🧠 Classification 모델 로드
         checkpoint = torch.load(CLASSIFIER_PATH)
@@ -352,14 +332,13 @@ class VisionNode(Node):
                 if not self.text_loc_detected:
                     self.text_loc_detected = True
                     self.get_logger().info(f"✅ QR 코드 병명 '{class_name}' 텍스트 인식됨!")
-                    self.get_logger().info(f"📍 위치 좌표: x = {center_x}, y = {center_y}, 구역 = {loc}")
+                    self.get_logger().info(f"📍 위치 좌표: x = {center_x}, y = {center_y}")
 
                     msg = TextLoc()
                     msg.text_loc = loc
                     self.text_loc_publisher.publish(msg)
 
         return annotated_frame
-
 
     '''YOLO 모델을 로드하는 함수'''
     def load_yolo_model(self):
@@ -383,25 +362,15 @@ class VisionNode(Node):
         if not self.yolo_running or self.yolo_model is None:
             # 모델이 준비되지 않았으면 원본 프레임 반환
             return frame
+        
+        # roi_box= cv2.selectROI("Select ROI",frame)
+        # cv2.destroyWindow("Select ROI")
+        # x,y,w,h=roi_box
+        # print(f"좌표: {x},{y},{w},{h}")
 
         results = self.yolo_model(frame, verbose=False)
 
         annotated_frame = frame.copy()
-
-        # ROI 사각형 그리기
-        if self.disease == 'diarrhea':
-            roi_start = (298, 168)
-            roi_end = (488, 258)
-        elif self.disease == 'dyspepsia':
-            roi_start = (323, 176)
-            roi_end = (508, 256)
-        elif self.disease == 'dermatitis':
-            roi_start = (285, 170)
-            roi_end = (463, 258)
-        elif self.disease == 'cold':
-            roi_start = (287, 185)
-            roi_end = (477, 280)
-        cv2.rectangle(annotated_frame, roi_start, roi_end, (255, 255, 255), 1)
 
         if results and results[0].masks is not None:
             masks = results[0].masks.data.cpu().numpy()  # (num_masks, H, W)
@@ -431,12 +400,6 @@ class VisionNode(Node):
                 mask_uint8 = (mask_bool.astype(np.uint8)) * 255
                 contours, _ = cv2.findContours(mask_uint8, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-                # 마스크 내 픽셀 좌표 기반 클래스 이름 텍스트 출력
-                ys, xs = np.where(mask_bool)
-                if len(xs) > 0 and len(ys) > 0:
-                    x1, y1 = np.min(xs), np.min(ys)
-                    cv2.putText(annotated_frame, class_name, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2)
-
                 if contours and len(contours[0]) >= 5:
                     ellipse = cv2.fitEllipse(contours[0])
                     (center, axes, angle) = ellipse
@@ -453,15 +416,22 @@ class VisionNode(Node):
                     center_text = f"({int(center[0])}, {int(center[1])})"
                     cv2.putText(annotated_frame, center_text, (int(center[0]) + 35, int(center[1]) + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
 
-                    '''추가'''
-                    # 집어야하는 약 순서대로 좌표 저장 (예: ['monodoxy_cap', 'monodoxy_cap', 'monodoxy_cap', 'ganakhan_tab', 'ganakhan_tab'])
-                    # ROI 안에 있는 약만 저장
-                    if (class_name == self.pill_list[self.pill_list_index]
-                        and roi_start[0] <= int(center[0]) <= roi_end[0]
-                        and roi_start[1] <= int(center[1]) <= roi_end[1]
-                    ):
-                        # 약 위치 저장
-                        self.pill_loc = [int(center[0]), int(center[1]), int(angle)]
+                    # class_name이 QR에 있는 약인지 확인
+                    if class_name in self.required_counts:
+                        # 아직 다 못 찾았으면 개수 +1 하고 위치 저장
+                        if self.detected_pill_counts[class_name] < self.required_counts[class_name]:
+                            self.detected_pill_counts[class_name] += 1
+                            self.detected_pill_locs[class_name].append((int(center[0]), int(center[1]), int(angle)))
+
+                    # # 약 위치 저장
+                    # self.pill_loc = [int(center[0]), int(center[1]), int(angle)]
+
+                # 마스크 내 픽셀 좌표 기반 클래스 이름 텍스트 출력
+                ys, xs = np.where(mask_bool)
+                if len(xs) > 0 and len(ys) > 0:
+                    x1, y1 = np.min(xs), np.min(ys)
+                    cv2.putText(annotated_frame, class_name, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2)
+
 
         # 일정 시간 경과 후 YOLO 모델 종료 처리
         elapsed = time.time() - self.yolo_start_time
@@ -472,33 +442,37 @@ class VisionNode(Node):
             self.yolo_running = False
             self.get_logger().info("[INFO] YOLO 모델 메모리 해제 완료!")
 
-            '''추가'''
-            # self.pill_list_index가 처방해야 할 약의 총 개수보다 높으면 루프 종료
-            if len(self.pill_list) <= self.pill_list_index:
-                self.get_logger().info("[INFO] 약 모두 처방 완료!")
-            else:
-                # 약의 img 좌표를 robot base 좌표로 변환
-                x_base, y_base, z_base = self.coordinate_transformation(self.pill_loc[0], self.pill_loc[1])
+            all_matched = (
+                set(self.required_pills) == set(self.detected_pill_counts.keys()) and
+                all(self.detected_pill_counts[pill] >= self.required_counts[pill] for pill in self.required_pills)
+            )
 
-                pill_name = self.pill_list[self.pill_list_index]
-                total = self.pill_list.count(pill_name)
-                index = self.pill_list[:self.pill_list_index].count(pill_name)
+            if not all_matched:
+                self.get_logger().warn("❌ 약 종류 또는 개수가 부족합니다. 홈으로 복귀합니다.")
+                self.return_home()  # 직접 만든 함수 사용
+                return annotated_frame
 
-                pill_loc_msg = PillLoc()
-                pill_loc_msg.x = int(x_base)
-                pill_loc_msg.y = int(y_base)
-                pill_loc_msg.theta = self.pill_loc[2]
-                pill_loc_msg.pill_name = pill_name
-                pill_loc_msg.index = index
-                pill_loc_msg.total = total
+            self.get_logger().info("✅ 약 종류 및 개수 모두 충족. 집기 시작합니다.")
 
-                self.pill_loc_publisher.publish(pill_loc_msg)
-                self.get_logger().info(f"📤 Pill publish: {pill_name} ({index+1}/{total}) → (x : {pill_loc_msg.x}, y : {pill_loc_msg.y}, theta : {pill_loc_msg.theta})")
+            for pill_name in self.required_pills:
+                locs = self.detected_pill_locs[pill_name][:self.required_counts[pill_name]]
+                total = self.required_counts[pill_name]
+                for index, loc in enumerate(locs):
+                    # 약의 img 좌표를 robot base 좌표로 변환
+                    x_base, y_base, z_base = self.coordinate_transformation(loc[0], loc[1])
 
-                self.pill_list_index += 1
+                    pill_loc_msg = PillLoc()
+                    pill_loc_msg.x = int(x_base)
+                    pill_loc_msg.y = int(y_base)
+                    pill_loc_msg.theta = loc[2]
+                    pill_loc_msg.pill_name = pill_name
+                    pill_loc_msg.index = index
+                    pill_loc_msg.total = total
 
-                # self.get_logger().info(f"📤 Pill location publish: {pill_loc_msg}")
-                # self.get_logger().info(f"📤 Pill location (x_base = {pill_loc_msg.x}, y_base = {pill_loc_msg.y}, theta = {pill_loc_msg.theta})")
+                    self.pill_loc_publisher.publish(pill_loc_msg)
+                    self.get_logger().info(f"📤 Pill publish: {pill_name} ({index+1}/{total}) → ({pill_loc_msg.x}, {pill_loc_msg.y}, {pill_loc_msg.theta})")
+                    # self.get_logger().info(f"📤 Pill location publish: {pill_loc_msg}")
+                    # self.get_logger().info(f"📤 Pill location (x_base = {pill_loc_msg.x}, y_base = {pill_loc_msg.y}, theta = {pill_loc_msg.theta})")
 
         return annotated_frame
     
