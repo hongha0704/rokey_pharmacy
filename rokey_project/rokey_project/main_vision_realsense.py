@@ -213,11 +213,11 @@ class VisionNode(Node):
 
         # 약이름 → 증상군
         drug_to_symptom = {
-            "nexilen_tab": "dermatitis",
-            "magmil_tab": "dermatitis",
             "monodoxy_cap": "dermatitis",
             "ganakan_tab": "dermatitis",
+            "nexilen_tab": "dyspepsia",
             "medilacsenteric_tab": "dyspepsia",
+            "magmil_tab": "dyspepsia",
             "samsung_octylonium_tab": "diarrhea",
             "famodine": "diarrhea",
             "otillen_tab": "diarrhea",

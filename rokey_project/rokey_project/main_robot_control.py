@@ -646,7 +646,7 @@ def place_pill():
     time.sleep(0.2)
 
     # 한번 털기
-    move_periodic(amp =[0,0,15,0,0,0], period=0.7, atime=0.2, repeat=1, ref=DR_TOOL)
+    move_periodic(amp =[0,0,10,0,0,0], period=0.7, atime=0.2, repeat=1, ref=DR_TOOL)
     time.sleep(0.2)
 
     node.get_logger().info("========== 🏁 place_pill() 종료 ==========")
@@ -1042,6 +1042,7 @@ def main(args=None):
             choice_BTC(medicine)
 
     movej(JReady, vel=VELOCITY, acc=ACC)
+    time.sleep(3)
     rclpy.shutdown()
 
 
