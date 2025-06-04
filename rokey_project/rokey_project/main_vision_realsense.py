@@ -68,11 +68,11 @@ class VisionNode(Node):
 
         # YOLO 가중치 파일 이름, 신뢰도 설정
         self.diarrhea_yolo_weights = 'diarrhea.pt'
-        self.dyspepsia_yolo_weights = 'dyspepsia.pt'
         self.dermatitis_yolo_weights = 'dermatitis.pt'
         self.cold_yolo_weights = 'cold.pt'
+        self.dyspepsia_yolo_weights = 'dyspepsia.pt'
         self.shelf_yolo_weights = 'shelf.pt'
-        self.CONFIDENCE = 0.20
+        self.CONFIDENCE = 0.75
 
         # 현재 로봇 상태 저장 변수
         self.robot_state = ''
@@ -84,34 +84,52 @@ class VisionNode(Node):
         self.disease = ''
         self.medicine = ''
 
-        '''추가'''
         # 집어야 하는 약의 리스트 (예: ['monodoxy_cap', 'monodoxy_cap', 'monodoxy_cap', 'ganakhan_tab', 'ganakhan_tab'])
         self.pill_list = []
         self.pill_list_index = 0
-
-        #### 테스트용 ####
-        # self.pill_list = ['monodoxy_cap', 'ganakan_tab']
-        # self.disease = 'dermatitis'
-        # self.pill_list = ['amoxicle_tab', 'amoxicle_tab', 'amoxicle_tab', 'panstar_tab']
-        # self.disease = 'cold'
-        # self.pill_list = ['nexilen_tab', 'medilacsenteric_tab', 'medilacsenteric_tab', 'magmil_tab', 'magmil_tab', 'magmil_tab']
-        # self.disease = 'dyspepsia'
-        self.pill_list = ['otillen_tab']
-        self.disease = 'diarrhea'
-        
-        
-        '''추가'''
+    
         # 약의 형태에 따라 원 또는 타원으로 추정하기 위한 리스트
         self.ellipse_pill_list = ['amoxicle_tab', 'sudafed_tab','monodoxy_cap', 'nexilen_tab', 'medilacsenteric_tab', 'otillen_tab']
         self.circle_pill_list = ['panstar_tab', 'ganakan_tab', 'magmil_tab', 'samsung_octylonium_tab', 'famodine']
         
         # text_loc가 최초로 인식되었는지 여부
         self.text_loc_detected = False
+        
+        # 서랍 구역 저장
+        self.text_loc = 0
+
+        #### 테스트용 ####
+        # self.pill_list = ['otillen_tab', 'otillen_tab', 'otillen_tab']
+        # self.disease = 'diarrhea'
+        # self.text_loc = 1
+        # self.pill_list = ['monodoxy_cap', 'ganakan_tab']
+        # self.disease = 'dermatitis'
+        # self.text_loc = 2
+        # self.pill_list = ['panstar_tab', 'panstar_tab', 'panstar_tab', 'amoxicle_tab', 'amoxicle_tab']
+        # self.disease = 'cold'
+        # self.text_loc = 3
+        # self.pill_list = ['nexilen_tab', 'medilacsenteric_tab', 'medilacsenteric_tab', 'magmil_tab', 'magmil_tab', 'magmil_tab']
+        # self.disease = 'dyspepsia'
+        # self.text_loc = 4
+        #### 테스트용 ####
 
         # YOLO 모델 관련 변수 초기화
         self.yolo_model = None
         self.yolo_start_time = None
         self.yolo_running = False
+
+        self.pill_detece_color = {'otillen_tab': (0, 255, 255),             # diarrhea
+                                  'samsung_octylonium_tab': (255, 0, 255),  # diarrhea
+                                  'famodine': (255, 255, 0),                # diarrhea
+                                  'monodoxy_cap': (0, 255, 255),            # dermatitis
+                                  'ganakan_tab': (0, 255, 0),               # dermatitis
+                                  'panstar_tab': (255, 0, 255),             # cold
+                                  'amoxicle_tab': (0, 255, 255),            # cold
+                                  'nexilen_tab': (0, 255, 255),             # dyspepsia
+                                  'medilacsenteric_tab': (0, 255, 0),       # dyspepsia
+                                  'magmil_tab': (0, 0, 255),                # dyspepsia
+                                  
+                                  }
 
         # 약의 위치 및 각도를 저장하는 리스트 (x, y, theta)
         self.pill_loc = [0, 0, 0]
@@ -305,7 +323,7 @@ class VisionNode(Node):
 
         CLASSIFIER_PATH = os.path.join(package_share_directory, 'weights', 'text_classifier.pth')
         CLASSIFICATION_SIZE = (64, 128)
-        CONFIDENCE = 0.40
+        CONFIDENCE = 0.70
 
         # 🧠 Classification 모델 로드
         checkpoint = torch.load(CLASSIFIER_PATH)
@@ -364,6 +382,14 @@ class VisionNode(Node):
                 class_name = classification_classes[predicted.item()]
                 confidence = conf.item()
 
+
+            # # 🎨 classifier 클래스 기준 색상
+            # color = class_colors.get(class_name, (0, 255, 0))
+            # label = f"{class_name} ({confidence:.2f})"
+            # # 바운딩 박스 및 라벨 시각화
+            # cv2.rectangle(annotated_frame, (x1, y1), (x2, y2), (255,0,255) , 2)
+            # cv2.putText(annotated_frame, label, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
+
             #  병 이름과 일치하면 좌표 출력
             if class_name in self.detected_diseases:
                 center_x = (x1 + x2) // 2
@@ -371,13 +397,13 @@ class VisionNode(Node):
                 height, width, _ = frame.shape
                 # 구역 판별
                 if center_x < width // 2 and center_y < height // 2:
-                    loc = 3 # 좌상
+                    self.text_loc = 3 # 좌상
                 elif center_x >= width // 2 and center_y < height // 2:
-                    loc= 4  # 우상
+                    self.text_loc = 4  # 우상
                 elif center_x < width // 2 and center_y >= height // 2:
-                    loc = 1  # 좌하
+                    self.text_loc = 1  # 좌하
                 else:
-                    loc = 2  # 우하
+                    self.text_loc = 2  # 우하
                 
                 # 🎨 classifier 클래스 기준 색상
                 color = class_colors.get(class_name, (0, 255, 0))
@@ -391,10 +417,10 @@ class VisionNode(Node):
                 if not self.text_loc_detected:
                     self.text_loc_detected = True
                     self.get_logger().info(f"✅ QR 코드 병명 '{class_name}' 텍스트 인식됨!")
-                    self.get_logger().info(f"📍 위치 좌표: x = {center_x}, y = {center_y}, 구역 = {loc}")
+                    self.get_logger().info(f"📍 위치 좌표: x = {center_x}, y = {center_y}, 구역 = {self.text_loc}")
 
                     msg = TextLoc()
-                    msg.text_loc = loc
+                    msg.text_loc = self.text_loc
                     self.text_loc_publisher.publish(msg)
 
         return annotated_frame
@@ -427,19 +453,23 @@ class VisionNode(Node):
 
         annotated_frame = frame.copy()
 
-        # ROI 사각형 그리기
-        if self.disease == 'diarrhea':
-            roi_start = (298, 168)
-            roi_end = (488, 258)
-        elif self.disease == 'dyspepsia':
+        # ROI 사각형 그리기 cold
+        if self.text_loc == 1:
+            self.CONFIDENCE = 0.40
+            roi_start = (290, 165)
+            roi_end = (475, 280)
+        elif self.text_loc == 2:
+            self.CONFIDENCE = 0.30
             roi_start = (323, 176)
             roi_end = (508, 256)
-        elif self.disease == 'dermatitis':
-            roi_start = (285, 170)
-            roi_end = (463, 258)
-        elif self.disease == 'cold':
-            roi_start = (287, 185)
-            roi_end = (477, 280)
+        elif self.text_loc == 3:
+            self.CONFIDENCE = 0.50
+            roi_start = (290, 175)
+            roi_end = (475, 275)
+        elif self.text_loc == 4:
+            self.CONFIDENCE = 0.70
+            roi_start = (300, 190)
+            roi_end = (485, 290)
         cv2.rectangle(annotated_frame, roi_start, roi_end, (255, 255, 255), 1)
 
         if results and results[0].masks is not None:
@@ -447,13 +477,23 @@ class VisionNode(Node):
             boxes = results[0].boxes
 
             for i, box in enumerate(boxes):
+                # 신뢰도
                 conf = box.conf.item()
-                if conf < self.CONFIDENCE:
+
+                # 객체의 중심점
+                x_center = int((box.xyxy[0][0] + box.xyxy[0][2]) / 2)
+                y_center = int((box.xyxy[0][1] + box.xyxy[0][3]) / 2)
+
+                # 신뢰도가 임계치 이상이고, ROI 안에 있을 때 detect
+                if (conf < self.CONFIDENCE
+                    or not (roi_start[0] <= x_center <= roi_end[0]
+                            and roi_start[1] <= y_center <= roi_end[1])):
                     continue
 
                 cls = int(box.cls[0])
                 class_name = self.yolo_model.names[cls]
-                color = self.class_colors.get(cls, (0, 255, 0))
+                # color = self.class_colors.get(cls, (0, 255, 0))
+                color = self.pill_detece_color.get(class_name, (255, 255, 255))
 
                 # cold의 'sudafed_tab'은 감지에서 제외(너무 작음)
                 if class_name == 'sudafed_tab':
@@ -497,8 +537,8 @@ class VisionNode(Node):
                         # 회전 각도, 중심점 좌표 텍스트 출력
                         angle_text = f"{angle:.1f} deg"
                         center_text = f"({int(center[0])}, {int(center[1])})"
-                        cv2.putText(annotated_frame, angle_text, (int(center[0]) + 35, int(center[1])), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
-                        cv2.putText(annotated_frame, center_text, (int(center[0]) + 35, int(center[1]) + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
+                        cv2.putText(annotated_frame, center_text, (int(center[0]) + 35, int(center[1])), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
+                        cv2.putText(annotated_frame, angle_text, (int(center[0]) + 35, int(center[1]) + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
 
                     # 약 모양이 원형일 때 원 모양 추정
                     elif class_name in self.circle_pill_list:
@@ -511,21 +551,23 @@ class VisionNode(Node):
                         center_text = f"({int(center[0])}, {int(center[1])})"
                         cv2.circle(annotated_frame, center, radius, color, 2)
                         cv2.circle(annotated_frame, center, 5, color, -1)
-                        cv2.putText(annotated_frame, center_text, (int(center[0]) + 35, int(center[1]) + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
+                        cv2.putText(annotated_frame, center_text, (int(center[0]) + 35, int(center[1])), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
 
                     '''추가'''
                     # 집어야하는 약 순서대로 좌표 저장 (예: ['monodoxy_cap', 'monodoxy_cap', 'monodoxy_cap', 'ganakhan_tab', 'ganakhan_tab'])
                     # ROI 안에 있는 약만 저장
-                    if (class_name == self.pill_list[self.pill_list_index]
-                        and roi_start[0] <= int(center[0]) <= roi_end[0]
-                        and roi_start[1] <= int(center[1]) <= roi_end[1]
-                    ):
+                    # if (class_name == self.pill_list[self.pill_list_index]
+                    #     and roi_start[0] <= int(center[0]) <= roi_end[0]
+                    #     and roi_start[1] <= int(center[1]) <= roi_end[1]
+                    # ):
+                    if class_name == self.pill_list[self.pill_list_index]:
                         # 약 위치 저장
                         self.pill_loc = [int(center[0]), int(center[1]), int(angle)]
 
         # 일정 시간 경과 후 YOLO 모델 종료 처리
         elapsed = time.time() - self.yolo_start_time
-        second = 1000000000.0
+        second = 4.0
+        # second = 1000000000.0
         if elapsed > second:
             self.get_logger().info(f"[INFO] YOLO 모델 {second}초 경과, 메모리 해제 중...")
             self.yolo_model = None

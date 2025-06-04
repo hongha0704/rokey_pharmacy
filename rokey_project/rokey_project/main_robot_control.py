@@ -45,6 +45,7 @@ try:
         set_desired_force,
         movec,
         release_force,
+        move_periodic,
         DR_MV_MOD_REL, DR_FC_MOD_REL,
         DR_AXIS_X, DR_AXIS_Y, DR_AXIS_Z, DR_TOOL,
     )
@@ -197,6 +198,9 @@ robot_current_posx_publisher = node.create_publisher(RobotState, "/robot_current
 
 # 비처방약 publisher 생성
 medicine_publisher = node.create_publisher(Medicine, "/medicine_name", 10)
+
+# 마무리 상태와 약 이름 publisher 생성
+finish_publisher = node.create_publisher(TaskState, '/task_state', 10)
 
 
 '''사람 감지 정보(초음파 센서)를 수신하는 콜백 함수'''
@@ -543,14 +547,18 @@ def pick_pill():
 
     # 서랍의 위치 별 z값 설정
     if text_loc == 1:
-        z = 20.0
+        z = 23.00
     elif text_loc == 2:
         z = 24.12
     elif text_loc == 3:
-        # z = 111.63
-        z = 112.63
+        z = 111.00
+        # y축 오차로 인해 살짝 조정
+        y_base -= 5
     elif text_loc == 4:
-        z = 111.23
+        z = 111.00
+        # x, y축 오차로 인해 살짝 조정
+        x_base -= 3
+        y_base -= 5
     node.get_logger().info(f"💊 x = {x_base}, y = {y_base}, z = {z}")
 
     # 약 있는 위치의 x, y 좌표로 가고, 6축을 theta만큼 회전하기
@@ -560,7 +568,7 @@ def pick_pill():
     movej([0, 0, 0, 0, 0, theta], vel=VELOCITY, acc=ACC, mod=1)
 
     # 약에 따라서 그리퍼 너비 조정
-    if pill_name == 'amoxicle_tab' or pill_name == 'panstar_tab':
+    if pill_name == 'amoxicle_tab' or pill_name == 'panstar_tab' or pill_name == 'magmil_tab':
         gripper.move_gripper(170)   # 그리퍼 17mm 만큼 열기
     else:
         gripper.move_gripper(150)   # 그리퍼 15mm 만큼 열기
@@ -576,7 +584,7 @@ def pick_pill():
     time.sleep(0.5)
 
     # 약에 따라서 그리퍼 너비 조정
-    if pill_name == 'amoxicle_tab' or pill_name == 'panstar_tab':
+    if pill_name == 'amoxicle_tab' or pill_name == 'panstar_tab' or pill_name == 'magmil_tab':
         gripper.move_gripper(100)   # 그리퍼 10mm 만큼 열기
     else:
         gripper.move_gripper(80)    # 그리퍼 8mm로 닫기
@@ -635,7 +643,11 @@ def place_pill():
 
     # 그리퍼 15mm 만큼 열기
     gripper.move_gripper(150)
-    time.sleep(1)
+    time.sleep(0.2)
+
+    # 한번 털기
+    move_periodic(amp =[0,0,15,0,0,0], period=0.7, atime=0.2, repeat=1, ref=DR_TOOL)
+    time.sleep(0.2)
 
     node.get_logger().info("========== 🏁 place_pill() 종료 ==========")
 
@@ -982,39 +994,61 @@ def medicine_loc_callback(msg):
     node.get_logger().info("========== medicine location 수신 완료 ==========")
 
 
+'''약 탐지 상태와 로봇의 current_posx를 퍼블리시하는 함수'''
+def finish_publish():
+    global qr_disease, qr_pill_list
+    node.get_logger().info("========== 🏁 finish_publish() 시작! ==========")
+
+    # qr_disease = 'dyspepsia'
+    # qr_pill_list = ['nexilen_tab', 'medilacsenteric_tab', 'magmil_tab']
+    # print(f'qr_pill_string = {qr_pill_string}')
+    qr_pill_string = f"'{ ' '.join(qr_pill_list) }'"
+
+    # 'explain_medicine' 상태를 VisionNode에 퍼블리시
+    node.get_logger().info(f"📤 'explain_medicine' 상태 퍼블리시 중...")
+    finish_msg = TaskState()
+    finish_msg.state = "explain_medicine"
+    finish_msg.qr_info = qr_pill_string
+    finish_publisher.publish(finish_msg)
+    node.get_logger().info(f"📤  퍼블리시 완료! State : {finish_msg.state}, pill : {finish_msg.qr_info}")
+
+    node.get_logger().info("========== 🏁 finish_publish() 종료 ==========")
+
+
 
 def main(args=None):
     global qr_data_received, voice_received, qr_total_pills_count
-    # global text_loc #### 테스트용
 
-    # move_check_qr()
-    # # QR 인식 시 처방약
-    # if qr_data_received:
-    #     move_check_text()
-    #     select_and_open_drawer()
-    #     for _ in range(qr_total_pills_count):
-    #         move_drawer_campose()
-    #         publish_check_pill_state()
-    #         pick_pill()
-    #         place_pill()
-    #     select_and_close_drawer()
-    #     put_pill_in_bag()
+    move_check_qr()
+    # QR 인식 시 처방약
+    if qr_data_received:
+        move_check_text()
+        select_and_open_drawer()
+        for _ in range(qr_total_pills_count):
+            move_drawer_campose()
+            publish_check_pill_state()
+            pick_pill()
+            place_pill()
+        select_and_close_drawer()
+        put_pill_in_bag()
+        finish_publish()
 
-    # # Voice 인식 시 비처방약
-    # elif voice_received:
-    #     for medicine in medicines_name:
-    #         print(f"medicine = {medicine}")
-    #         publish_medicine(medicine)
-    #         move_shelf_state()
-    #         choice_BTC(medicine)
+    # Voice 인식 시 비처방약
+    elif voice_received:
+        for medicine in medicines_name:
+            print(f"medicine = {medicine}")
+            publish_medicine(medicine)
+            move_shelf_state()
+            choice_BTC(medicine)
 
-    # movej(JReady, vel=VELOCITY, acc=ACC)
-    # rclpy.shutdown()
+    movej(JReady, vel=VELOCITY, acc=ACC)
+    rclpy.shutdown()
 
 
 
     #### 테스트용 ####
-    # text_loc = 2
+    # global text_loc #### 테스트용
+    # text_loc = 4
     # qr_total_pills_count = 6
     # movej(JReady, vel=VELOCITY, acc=ACC)
     # for _ in range(qr_total_pills_count):
@@ -1028,8 +1062,12 @@ def main(args=None):
     # rclpy.shutdown()
     #### 테스트용 ####
 
-    movej(Jdrawer_1_campose, vel=VELOCITY, acc=ACC)
-    rclpy.shutdown()
+    # movej(JReady, vel=VELOCITY, acc=ACC)
+    # open_drawer_4()
+    # movej(Jdrawer_4_campose, vel=VELOCITY, acc=ACC)
+    
+    finish_publish()
+    # rclpy.shutdown()
 
 
 if __name__ == "__main__":
