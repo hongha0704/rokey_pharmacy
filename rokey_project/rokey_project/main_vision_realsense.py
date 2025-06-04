@@ -52,7 +52,7 @@ class VisionNode(Node):
         self.robot_current_posx_subscription = self.create_subscription(RobotState, '/robot_current_posx', self.robot_current_posx_callback, 10)
 
         # 로봇 current_posx 메시지 subscriber
-        self.medicine_subscription = self.create_subscription(Medicine, '/medicine', self.medicine_callback, 10)
+        self.medicine_subscription = self.create_subscription(Medicine, '/medicine_name', self.medicine_callback, 10)
         
         # QR 코드 정보 publisher
         self.qr_info_publisher = self.create_publisher(QRInfo, '/qr_info', 10)
@@ -72,7 +72,7 @@ class VisionNode(Node):
         self.dermatitis_yolo_weights = 'dermatitis.pt'
         self.cold_yolo_weights = 'cold.pt'
         self.shelf_yolo_weights = 'shelf.pt'
-        self.CONFIDENCE = 0.50
+        self.CONFIDENCE = 0.20
 
         # 현재 로봇 상태 저장 변수
         self.robot_state = ''
@@ -90,10 +90,15 @@ class VisionNode(Node):
         self.pill_list_index = 0
 
         #### 테스트용 ####
+        # self.pill_list = ['monodoxy_cap', 'ganakan_tab']
+        # self.disease = 'dermatitis'
         # self.pill_list = ['amoxicle_tab', 'amoxicle_tab', 'amoxicle_tab', 'panstar_tab']
         # self.disease = 'cold'
         # self.pill_list = ['nexilen_tab', 'medilacsenteric_tab', 'medilacsenteric_tab', 'magmil_tab', 'magmil_tab', 'magmil_tab']
         # self.disease = 'dyspepsia'
+        self.pill_list = ['otillen_tab']
+        self.disease = 'diarrhea'
+        
         
         '''추가'''
         # 약의 형태에 따라 원 또는 타원으로 추정하기 위한 리스트
@@ -110,6 +115,8 @@ class VisionNode(Node):
 
         # 약의 위치 및 각도를 저장하는 리스트 (x, y, theta)
         self.pill_loc = [0, 0, 0]
+
+        self.cx, self.cy = 0, 0
 
 
     '''로봇 current_posx 메시지 수신 시 호출되는 콜백 함수'''
@@ -518,7 +525,7 @@ class VisionNode(Node):
 
         # 일정 시간 경과 후 YOLO 모델 종료 처리
         elapsed = time.time() - self.yolo_start_time
-        second = 5.0
+        second = 1000000000.0
         if elapsed > second:
             self.get_logger().info(f"[INFO] YOLO 모델 {second}초 경과, 메모리 해제 중...")
             self.yolo_model = None
@@ -618,7 +625,8 @@ class VisionNode(Node):
         results = self.yolo_model(frame, verbose=False)
         annotated_frame = frame.copy()
 
-        if results and results[0].masks is not None:
+        # if results and results[0].masks is not None:
+        if results:
             boxes = results[0].boxes
             # masks = results[0].masks.data.cpu().numpy()  # (num_masks, H, W)
 
@@ -633,24 +641,24 @@ class VisionNode(Node):
 
                 # 바운딩 박스 좌표 추출
                 x1, y1, x2, y2 = map(int, box.xyxy[0])
-                cx = (x1 + x2) // 2
-                cy = (y1 + y2) // 2
+                self.cx = (x1 + x2) // 2
+                self.cy = (y1 + y2) // 2
 
                 # 중심점 저장 (예: self.medicine에 저장)
-                self.medicine = (cx, cy)
+                self.medicine = (self.cx, self.cy)
 
                 # 박스 및 라벨, 중심점 그리기
                 cv2.rectangle(annotated_frame, (x1, y1), (x2, y2), color, 2)
-                cv2.circle(annotated_frame, (cx, cy), 5, (0, 0, 255), -1)
+                cv2.circle(annotated_frame, (self.cx, self.cy), 5, (0, 0, 255), -1)
                 cv2.putText(annotated_frame, class_name, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
 
-                # 세로선 (x=335), 가로선 (y=185) 그리기
-                cv2.line(frame, (335, 0), (335, frame.shape[0]), (255, 255, 255), 1)
-                cv2.line(frame, (0, 185), (frame.shape[1], 185), (255, 255, 255), 1)
+        # 세로선 (x=335), 가로선 (y=185) 그리기
+        cv2.line(frame, (335, 0), (335, frame.shape[0]), (255, 255, 255), 1)
+        cv2.line(frame, (0, 185), (frame.shape[1], 185), (255, 255, 255), 1)
 
         # 일정 시간 경과 후 YOLO 모델 종료 처리
         elapsed = time.time() - self.yolo_start_time
-        second = 4.0
+        second = 10.0
         if elapsed > second:
             self.get_logger().info(f"[INFO] YOLO 모델 {second}초 경과, 메모리 해제 중...")
             self.yolo_model = None
@@ -658,13 +666,13 @@ class VisionNode(Node):
             self.get_logger().info("[INFO] YOLO 모델 메모리 해제 완료!")
 
             # 물건이 위치한 구역 판별
-            if cx < 335 and cy > 185:
+            if self.cx < 335 and self.cy > 185:
                 loc = 1
-            elif cx >= 335 and cy > 185:
+            elif self.cx >= 335 and self.cy > 185:
                 loc = 2
-            elif cx < 335 and cy <= 185:
+            elif self.cx < 335 and self.cy <= 185:
                 loc = 3
-            elif cx >= 335 and cy <= 185:
+            elif self.cx >= 335 and self.cy <= 185:
                 loc = 4
 
             # 물건이 위치한 구역 publish
