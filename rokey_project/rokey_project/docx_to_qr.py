@@ -42,13 +42,13 @@ def parse_prescription_from_docx(docx_path):
     result = f"{name} {id_number}\n" + "\n".join(medicines)
     return result
 
-def generate_qr(text, output_file="/home/hongha/rokey_pharmacy_ws/src/rokey_project/image/QR_code/처방전_QR.png"):
+def generate_qr(text, output_file="/home/hongha/rokey_pharmacy_ws/src/rokey_project/image/QR_code/처방전_QR_cold.png"):
     img = qrcode.make(text)
     img.save(output_file)
     print(f"✅ QR 코드 저장 위치: {output_file}")
 
 # 실행 예시
-docx_path = "/home/hongha/rokey_pharmacy_ws/src/rokey_project/image/처방전.docx"
+docx_path = "/home/hongha/rokey_pharmacy_ws/src/rokey_project/image/처방전_cold.docx"
 qr_text = parse_prescription_from_docx(docx_path)
 generate_qr(qr_text)
 print(qr_text)

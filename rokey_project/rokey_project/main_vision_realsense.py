@@ -2,11 +2,11 @@ import rclpy
 from rclpy.node import Node
 from rclpy.executors import MultiThreadedExecutor
 from rokey_project.realsense import ImgNode
-from rokey_interfaces.msg import TaskState
 from rokey_interfaces.msg import RobotState
 from rokey_interfaces.msg import QRInfo
 from rokey_interfaces.msg import PillLoc
 from rokey_interfaces.msg import TextLoc
+from rokey_interfaces.msg import Medicine
 from collections import defaultdict
 import cv2
 import time
@@ -51,6 +51,9 @@ class VisionNode(Node):
         # 로봇 current_posx 메시지 subscriber
         self.robot_current_posx_subscription = self.create_subscription(RobotState, '/robot_current_posx', self.robot_current_posx_callback, 10)
 
+        # 로봇 current_posx 메시지 subscriber
+        self.medicine_subscription = self.create_subscription(Medicine, '/medicine', self.medicine_callback, 10)
+        
         # QR 코드 정보 publisher
         self.qr_info_publisher = self.create_publisher(QRInfo, '/qr_info', 10)
 
@@ -60,11 +63,15 @@ class VisionNode(Node):
         # 서랍 text 위치 publisher
         self.text_loc_publisher = self.create_publisher(TextLoc, "/text_loc", 10)
 
+        # 비처방약 위치 publisher
+        self.medicine_loc_publisher = self.create_publisher(TextLoc, "/medicine_loc", 10)
+
         # YOLO 가중치 파일 이름, 신뢰도 설정
         self.diarrhea_yolo_weights = 'diarrhea.pt'
         self.dyspepsia_yolo_weights = 'dyspepsia.pt'
-        self.dermatitis_yolo_weights = 'dermatitis_2.pt'
+        self.dermatitis_yolo_weights = 'dermatitis.pt'
         self.cold_yolo_weights = 'cold.pt'
+        self.shelf_yolo_weights = 'shelf.pt'
         self.CONFIDENCE = 0.50
 
         # 현재 로봇 상태 저장 변수
@@ -74,16 +81,24 @@ class VisionNode(Node):
         # QR 코드가 최초로 인식되었는지 여부
         self.qr_detected = False
         self.detected_diseases = []
+        self.disease = ''
+        self.medicine = ''
 
         '''추가'''
         # 집어야 하는 약의 리스트 (예: ['monodoxy_cap', 'monodoxy_cap', 'monodoxy_cap', 'ganakhan_tab', 'ganakhan_tab'])
         self.pill_list = []
         self.pill_list_index = 0
+
+        #### 테스트용 ####
+        # self.pill_list = ['amoxicle_tab', 'amoxicle_tab', 'amoxicle_tab', 'panstar_tab']
+        # self.disease = 'cold'
+        # self.pill_list = ['nexilen_tab', 'medilacsenteric_tab', 'medilacsenteric_tab', 'magmil_tab', 'magmil_tab', 'magmil_tab']
+        # self.disease = 'dyspepsia'
         
         '''추가'''
         # 약의 형태에 따라 원 또는 타원으로 추정하기 위한 리스트
         self.ellipse_pill_list = ['amoxicle_tab', 'sudafed_tab','monodoxy_cap', 'nexilen_tab', 'medilacsenteric_tab', 'otillen_tab']
-        self.circle_pill_list = ['panstar_tab', 'ganakhan_tab', 'magmil_tab', 'samsung_octylonium_tab', 'famodine']
+        self.circle_pill_list = ['panstar_tab', 'ganakan_tab', 'magmil_tab', 'samsung_octylonium_tab', 'famodine']
         
         # text_loc가 최초로 인식되었는지 여부
         self.text_loc_detected = False
@@ -103,6 +118,12 @@ class VisionNode(Node):
         self.robot_current_posx = msg.current_posx
         self.get_logger().info(f'📥 Robot current_posx 수신')
 
+    '''medicine 메시지 수신 시 호출되는 콜백 함수'''
+    def medicine_callback(self, msg):
+        # medicine 갱신
+        self.medicine = msg.name
+        self.get_logger().info(f'📥 medicine 수신')
+
 
     '''로봇 상태 메시지 수신 시 호출되는 콜백 함수'''
     def robot_state_callback(self, msg):
@@ -119,8 +140,7 @@ class VisionNode(Node):
         elif msg.robot_state == 'detect_pill':
             self.get_logger().info("[INFO] 카메라 알약 인식 시작...")
 
-            self.disease = 'dermatitis'  ############ 테스트용 ############
-
+            print(f'self.disease = {self.disease}')
             if self.disease == 'diarrhea':
                 self.yolo_weights = self.diarrhea_yolo_weights
             elif self.disease == 'dyspepsia':
@@ -134,6 +154,12 @@ class VisionNode(Node):
 
         elif msg.robot_state == 'pick_pill':
             self.get_logger().info("[INFO] 로봇 pick pill 시작...")
+
+        elif msg.robot_state == 'shelf_state':
+            self.get_logger().info("[INFO] 로봇 비처방약 탐지 시작...")
+
+            self.yolo_weights = self.shelf_yolo_weights
+            self.load_yolo_model()
             
 
     '''QR 코드를 탐지하고 시각화하는 함수'''
@@ -223,6 +249,7 @@ class VisionNode(Node):
                     self.get_logger().info(f"💊 병: {symptom}, 약: {pills}, 복용: {dosages}")
 
                     self.detected_diseases.append(symptom)
+                    self.disease = symptom
                     calculated_dosages = []
                     for dosage in dosages:
                         try:
@@ -271,7 +298,7 @@ class VisionNode(Node):
 
         CLASSIFIER_PATH = os.path.join(package_share_directory, 'weights', 'text_classifier.pth')
         CLASSIFICATION_SIZE = (64, 128)
-        CONFIDENCE = 0.75
+        CONFIDENCE = 0.40
 
         # 🧠 Classification 모델 로드
         checkpoint = torch.load(CLASSIFIER_PATH)
@@ -369,7 +396,7 @@ class VisionNode(Node):
     '''YOLO 모델을 로드하는 함수'''
     def load_yolo_model(self):
         if self.yolo_model is None:
-            self.get_logger().info("[INFO] YOLO 세그멘테이션 모델 로드 중...")
+            self.get_logger().info("[INFO] YOLO 모델 로드 중...")
             package_share_directory = get_package_share_directory('rokey_project')
             weights = os.path.join(package_share_directory, 'weights', self.yolo_weights)
             self.yolo_model = YOLO(weights)
@@ -380,7 +407,7 @@ class VisionNode(Node):
 
             self.yolo_start_time = time.time()
             self.yolo_running = True
-            self.get_logger().info("[INFO] YOLO 모델 로드 완료! Segmentation 시작")
+            self.get_logger().info("[INFO] YOLO 모델 로드 완료!")
 
 
     '''YOLO 세그멘테이션으로 알약 탐지 및 마스크를 표시하는 함수'''
@@ -421,6 +448,10 @@ class VisionNode(Node):
                 class_name = self.yolo_model.names[cls]
                 color = self.class_colors.get(cls, (0, 255, 0))
 
+                # cold의 'sudafed_tab'은 감지에서 제외(너무 작음)
+                if class_name == 'sudafed_tab':
+                    continue
+
                 mask = masks[i]
                 mask_bool = mask > 0.5
 
@@ -449,12 +480,13 @@ class VisionNode(Node):
                         ellipse = cv2.fitEllipse(contours[0])
                         (center, axes, angle) = ellipse
 
-                        # 타원 그리기
                         if ellipse[1][0] > 0 and ellipse[1][1] > 0:
+                            # 타원, 중심점 그리기
                             cv2.ellipse(annotated_frame, ellipse, color, 2)
+                            cv2.circle(annotated_frame, (int(center[0]), int(center[1])), 5, color, -1)
                         else:
                             print(f"[경고] 유효하지 않은 ellipse: {ellipse}")
-                            
+
                         # 회전 각도, 중심점 좌표 텍스트 출력
                         angle_text = f"{angle:.1f} deg"
                         center_text = f"({int(center[0])}, {int(center[1])})"
@@ -468,8 +500,10 @@ class VisionNode(Node):
                         radius = int(radius)
                         angle = 0
 
+                        # 원, 중심점 그리기, text 출력
                         center_text = f"({int(center[0])}, {int(center[1])})"
                         cv2.circle(annotated_frame, center, radius, color, 2)
+                        cv2.circle(annotated_frame, center, 5, color, -1)
                         cv2.putText(annotated_frame, center_text, (int(center[0]) + 35, int(center[1]) + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
 
                     '''추가'''
@@ -484,7 +518,7 @@ class VisionNode(Node):
 
         # 일정 시간 경과 후 YOLO 모델 종료 처리
         elapsed = time.time() - self.yolo_start_time
-        second = 2.0
+        second = 5.0
         if elapsed > second:
             self.get_logger().info(f"[INFO] YOLO 모델 {second}초 경과, 메모리 해제 중...")
             self.yolo_model = None
@@ -515,9 +549,6 @@ class VisionNode(Node):
                 self.get_logger().info(f"📤 Pill publish: {pill_name} ({index+1}/{total}) → (x : {pill_loc_msg.x}, y : {pill_loc_msg.y}, theta : {pill_loc_msg.theta})")
 
                 self.pill_list_index += 1
-
-                # self.get_logger().info(f"📤 Pill location publish: {pill_loc_msg}")
-                # self.get_logger().info(f"📤 Pill location (x_base = {pill_loc_msg.x}, y_base = {pill_loc_msg.y}, theta = {pill_loc_msg.theta})")
 
         return annotated_frame
     
@@ -577,7 +608,72 @@ class VisionNode(Node):
         T[:3, :3] = R
         T[:3, 3] = [x, y, z]
         return T
+    
 
+    '''비처방약을 객체탐지하는 함수'''
+    def detect_btc_yolo(self, frame):
+        if not self.yolo_running or self.yolo_model is None:
+            return frame  # 모델이 준비되지 않았으면 원본 프레임 반환
+
+        results = self.yolo_model(frame, verbose=False)
+        annotated_frame = frame.copy()
+
+        if results and results[0].masks is not None:
+            boxes = results[0].boxes
+            # masks = results[0].masks.data.cpu().numpy()  # (num_masks, H, W)
+
+            for i, box in enumerate(boxes):
+                conf = box.conf.item()
+                if conf < self.CONFIDENCE:
+                    continue
+
+                cls = int(box.cls[0])
+                class_name = self.yolo_model.names[cls]
+                color = self.class_colors.get(cls, (0, 255, 0))
+
+                # 바운딩 박스 좌표 추출
+                x1, y1, x2, y2 = map(int, box.xyxy[0])
+                cx = (x1 + x2) // 2
+                cy = (y1 + y2) // 2
+
+                # 중심점 저장 (예: self.medicine에 저장)
+                self.medicine = (cx, cy)
+
+                # 박스 및 라벨, 중심점 그리기
+                cv2.rectangle(annotated_frame, (x1, y1), (x2, y2), color, 2)
+                cv2.circle(annotated_frame, (cx, cy), 5, (0, 0, 255), -1)
+                cv2.putText(annotated_frame, class_name, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
+
+                # 세로선 (x=335), 가로선 (y=185) 그리기
+                cv2.line(frame, (335, 0), (335, frame.shape[0]), (255, 255, 255), 1)
+                cv2.line(frame, (0, 185), (frame.shape[1], 185), (255, 255, 255), 1)
+
+        # 일정 시간 경과 후 YOLO 모델 종료 처리
+        elapsed = time.time() - self.yolo_start_time
+        second = 4.0
+        if elapsed > second:
+            self.get_logger().info(f"[INFO] YOLO 모델 {second}초 경과, 메모리 해제 중...")
+            self.yolo_model = None
+            self.yolo_running = False
+            self.get_logger().info("[INFO] YOLO 모델 메모리 해제 완료!")
+
+            # 물건이 위치한 구역 판별
+            if cx < 335 and cy > 185:
+                loc = 1
+            elif cx >= 335 and cy > 185:
+                loc = 2
+            elif cx < 335 and cy <= 185:
+                loc = 3
+            elif cx >= 335 and cy <= 185:
+                loc = 4
+
+            # 물건이 위치한 구역 publish
+            medicine_loc_msg = TextLoc()
+            medicine_loc_msg.text_loc = loc
+            self.medicine_loc_publisher.publish(medicine_loc_msg)
+            self.get_logger().info(f"📤 Medicine loc publish: [{medicine_loc_msg.text_loc}]번 위치")
+
+        return annotated_frame
 
 
     '''카메라 프레임을 주기적으로 처리하는 루프 함수'''
@@ -589,15 +685,14 @@ class VisionNode(Node):
             self.get_logger().warn("⚠️  RealSense 프레임 없음")
             return None
         
-        # robot_state가 'check_qr'일 때만 QR 코드 인식
         if self.robot_state == 'check_qr':
             frame = self.detect_qr(frame)
         elif self.robot_state == 'detect_pill':
             frame = self.detect_pill_yolo(frame)
         elif self.robot_state == 'check_text':
             frame = self.load_text_model(frame)
-        else:
-            self.qr_detected = False  # 상태 바뀌면 다시 QR 탐지 대기
+        elif self.robot_state == 'shelf_state':
+            frame = self.detect_btc_yolo(frame)
 
         return frame
 

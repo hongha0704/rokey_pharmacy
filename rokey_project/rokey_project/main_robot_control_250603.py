@@ -111,7 +111,7 @@ Jclose_drawer_1_before = posj(16.31, 27.14, 70.41, -0.25, 83.05, 16.21)
 Jclose_drawer_1 = posj(16.47, 28.58, 74.62, -0.25, 77.93, 16.22)
 Jclose_drawer_1_waypoint_1 = posj(16.19, 30.73, 65.18, -0.26, 85.55, 15.70)
 Jclose_drawer_1_waypoint_2 = posj(16.41, 33.27, 74.73, -0.26, 73.70, 15.70)
-Xclose_drawer_1_finish = [626.14, 166.47, 240.26, 24.46, -178.07, 23.70]
+Xclose_drawer_1_finish = [622.86, 158.94, 20.69, 107.82, -179.98, 107.89]
 
 # 서랍장 2 닫는 pos
 Jclose_drawer_2_before = posj(5.32, 23.49, 75.73, -0.14, 80.71, 5.50)
@@ -143,6 +143,7 @@ qr_data_received = False
 qr_disease = None
 qr_pill_list = None
 qr_total_pills_count = 0
+detected_flag = False
 
 # 약 위치 초기화
 x_base, y_base, theta = 0, 0, 0
@@ -159,15 +160,34 @@ robot_state_publisher = node.create_publisher(RobotState, "/robot_state", 10)
 robot_current_posx_publisher = node.create_publisher(RobotState, "/robot_current_posx", 10)
 
 
+'''사람 감지 정보(초음파 센서)를 수신하는 콜백 함수'''
+def task_state_callback(msg):
+    global detected_flag
+    if msg.state == "detected":
+        detected_flag = True
+        node.get_logger().info("🔔 state='detected' 메시지 수신!")
+        
+
 '''QR 코드 인식 위치로 이동하고 정보를 수신하는 함수'''
 def move_check_qr():
     VELOCITY, ACC = 100, 100
-    global qr_data_received
+    global detected_flag, qr_data_received
     node.get_logger().info("========== 🏁 move_check_qr() 시작! ==========")
 
     # 홈위치
     movej(JReady, vel=VELOCITY, acc=ACC)
     gripper.move_gripper(300)
+
+    # # 초음파 subscription 대기 -> state == "detected" break, 구독 시작
+    # ultra_subscription = node.create_subscription(TaskState, '/task_state', task_state_callback, 10)
+
+    # # 감지 대기 루프
+    # node.get_logger().info("⏳ state='detected' 메시지 대기 중...")
+    # while not detected_flag:
+    #     rclpy.spin_once(node, timeout_sec=0.1)
+
+    # node.get_logger().info("✅사용자 감지됨")
+    # time.sleep(1)
 
     # qr code 체크하는 위치로 이동
     movesj([Jcheck_qr_waypoint, Jcheck_qr], vel=VELOCITY, acc=ACC)
@@ -191,6 +211,7 @@ def move_check_qr():
 
     # 더 이상 필요 없는 subscriber 제거
     node.destroy_subscription(qr_info_subscription)
+    # node.destroy_subscription(ultra_subscription)
     node.get_logger().info("========== 🏁 move_check_qr() 종료 ==========")
 
 
@@ -442,9 +463,11 @@ def publish_check_pill_state():
 '''약 위치와 자세 메시지를 subscribe하고, 약을 집는 함수'''
 def pick_pill():
     VELOCITY, ACC = 100, 100
+
+    global pill_name
     node.get_logger().info("========== 🏁 pick_pill() 시작! ==========")
     
-    global x_base, y_base, theta, qr_disease
+    global x_base, y_base, theta, qr_disease, text_loc
     x_base, y_base, theta = 0, 0, 0  # 초기화
 
     # 약의 위치와 자세 정보를 수신하는 subscriber 생성
@@ -462,14 +485,14 @@ def pick_pill():
     time.sleep(1)
 
     # 서랍의 위치 별 z값 설정
-    if qr_disease == 'diarrhea':
-        z = 24.09
-    if qr_disease == 'dyspepsia':
+    if text_loc == 1:
+        z = 20.0
+    elif text_loc == 2:
         z = 24.12
-    elif qr_disease == 'dermatitis':
-        z = 111.63
-        z = 115.63
-    elif qr_disease == 'cold':
+    elif text_loc == 3:
+        # z = 111.63
+        z = 112.63
+    elif text_loc == 4:
         z = 111.23
     node.get_logger().info(f"💊 x = {x_base}, y = {y_base}, z = {z}")
 
@@ -479,8 +502,11 @@ def pick_pill():
     movel(pick_pos, vel=VELOCITY, acc=ACC)
     movej([0, 0, 0, 0, 0, theta], vel=VELOCITY, acc=ACC, mod=1)
 
-    # 그리퍼 15mm 만큼 열기
-    gripper.move_gripper(150)
+    # 약에 따라서 그리퍼 너비 조정
+    if pill_name == 'amoxicle_tab' or pill_name == 'panstar_tab':
+        gripper.move_gripper(170)   # 그리퍼 17mm 만큼 열기
+    else:
+        gripper.move_gripper(150)   # 그리퍼 15mm 만큼 열기
     time.sleep(1)
 
     # 약 있는 위치로 내리기
@@ -492,8 +518,11 @@ def pick_pill():
     task_compliance_ctrl(stx=[500, 500, 500, 100, 100, 100])
     time.sleep(0.5)
 
-    # 그리퍼 8mm로 닫기
-    gripper.move_gripper(80)
+    # 약에 따라서 그리퍼 너비 조정
+    if pill_name == 'amoxicle_tab' or pill_name == 'panstar_tab':
+        gripper.move_gripper(100)   # 그리퍼 10mm 만큼 열기
+    else:
+        gripper.move_gripper(80)    # 그리퍼 8mm로 닫기
     time.sleep(0.5)
 
     # 순응제어 off

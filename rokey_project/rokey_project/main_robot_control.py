@@ -1,17 +1,16 @@
-# pick and place in 1 method. from pos1 to pos2 @20241104
-
 import rclpy
 import DR_init
 import time
 from rokey_project.onrobot import RG
+from rclpy.node import Node
 
 from rokey_interfaces.msg import TaskState
 from rokey_interfaces.msg import RobotState
 from rokey_interfaces.msg import QRInfo
 from rokey_interfaces.msg import PillLoc
 from rokey_interfaces.msg import TextLoc
-
-from rclpy.node import Node
+from rokey_interfaces.msg import Medicine
+from rokey_interfaces.msg import MedicineArray
 
 # for single robot
 ROBOT_ID = "dsr01"
@@ -43,7 +42,11 @@ try:
         task_compliance_ctrl,
         release_compliance_ctrl,
         check_force_condition,
-        DR_AXIS_X, DR_TOOL,
+        set_desired_force,
+        movec,
+        release_force,
+        DR_MV_MOD_REL, DR_FC_MOD_REL,
+        DR_AXIS_X, DR_AXIS_Z, DR_TOOL,
     )
 
     from DR_common2 import posx, posj
@@ -61,6 +64,7 @@ VELOCITY, ACC = 60, 60
 # home pos
 JReady = posj(0, 0, 90, 0, 90, 0)
 
+'''처방 pos'''
 # qr코드 확인하는 pos
 Jcheck_qr_waypoint = posj(11.65, -2.53, 104.26, 38.19, 15.43, 47.83)
 Jcheck_qr = posj(36.46, 15.43, 103.02, 105.37, -124.10, 30.93)
@@ -111,7 +115,7 @@ Jclose_drawer_1_before = posj(16.31, 27.14, 70.41, -0.25, 83.05, 16.21)
 Jclose_drawer_1 = posj(16.47, 28.58, 74.62, -0.25, 77.93, 16.22)
 Jclose_drawer_1_waypoint_1 = posj(16.19, 30.73, 65.18, -0.26, 85.55, 15.70)
 Jclose_drawer_1_waypoint_2 = posj(16.41, 33.27, 74.73, -0.26, 73.70, 15.70)
-Xclose_drawer_1_finish = [626.14, 166.47, 240.26, 24.46, -178.07, 23.70]
+Xclose_drawer_1_finish = [622.86, 158.94, 20.69, 107.82, -179.98, 107.89]
 
 # 서랍장 2 닫는 pos
 Jclose_drawer_2_before = posj(5.32, 23.49, 75.73, -0.14, 80.71, 5.50)
@@ -138,8 +142,40 @@ Xclose_drawer_4_finish = [620.25, 50.17, 99.27, 15.96, -179.43, 14.11]
 Jput_pill_in_bag_waypoint = posj(83.86, -4.41, 97.21, -0.70, 87.08, 0.00)
 Xput_pill_in_bag = [39.54, 348.45, 30.77, 6.09, 179.24, -77.56]
 
+'''비처방 pos'''
+#서랍 보는 위치
+Jpos1 = [-29.40, -7.43, 124.59, 78.41, 25.69, -2.70]
+
+Jpos_A = [-19.94, 38.18, 97.09, 125.47, 23.01, -49.61]  # 1층 오른쪽
+Jpos_B = [-9.91, 35.84, 101.08, 152.81, 21.22, -70.26]  # 1층 왼쪽
+Jpos_C = [-19.75, 29.09, 79.78, 59.51, 25.19, 24.11]    # 2층 오른쪽
+Jpos_D = [-9.66, 24.64, 86.72, 57.60, 11.25, 27.05]     # 2층 왼쪽
+
+# 1층 movesx list - 왼쪽
+floor_1_L_1 = posx(-15.35, 15.98, 120.60, 133.16, 19.83, -54.41)
+
+# 2층 movec list 
+floor_2_1 = posx(-30, 0, 40, 0, 0, 0)
+floor_2_2 = posx(-60, 0, -40, 0, 0, 0)
+
+# 1층 물품 빼낼 때 경유지점
+Jpos_r = posj(-25.83, 24.10, 113.35, 118.33, 29.32, -47.92)         # 1층 오른쪽
+Jpos_l = posj(-15.92, 20.66, 115.66, 125.60, 20.21, -47.92)         # 1층 왼쪽
+Jpos_between = posj(-15.35, -9.32, 125.77, 153.57, -7.82, -67.06)   # 좌측 우측 공통 경유 지점
+Put_place = posj(-35.25, 12.47, 90.79, 0.00, 76.73, -35.22)         # 임시 계산대
+Jpos_R = [Jpos_r, Jpos_between, Put_place]                          # movesj list
+Jpos_L = [Jpos_l, Jpos_between, Put_place]                          # movesj list
+
+# 각 비처방 약들의 그립 크기
+grip_dict = {"tylenol": 150, "bandage": 300, "sore_patch": 300, "codaewon_syrup": 80}
+
+
 # 플래그 및 수신 데이터
 qr_data_received = False
+voice_received = False
+medicine_loc_received = False
+medicine_loc = 0
+medicines_name = []
 qr_disease = None
 qr_pill_list = None
 qr_total_pills_count = 0
@@ -158,6 +194,9 @@ robot_state_publisher = node.create_publisher(RobotState, "/robot_state", 10)
 
 # robot_current_posx publisher 생성
 robot_current_posx_publisher = node.create_publisher(RobotState, "/robot_current_posx", 10)
+
+# 비처방약 publisher 생성
+medicine_publisher = node.create_publisher(Medicine, "/medicine", 10)
 
 
 '''사람 감지 정보(초음파 센서)를 수신하는 콜백 함수'''
@@ -178,22 +217,23 @@ def move_check_qr():
     movej(JReady, vel=VELOCITY, acc=ACC)
     gripper.move_gripper(300)
 
-    # 초음파 subscription 대기 -> state == "detected" break, 구독 시작
-    ultra_subscription = node.create_subscription(TaskState, '/task_state', task_state_callback, 10)
+    # # 초음파 subscription 대기 -> state == "detected" break, 구독 시작
+    # ultra_subscription = node.create_subscription(TaskState, '/task_state', task_state_callback, 10)
 
-    # 감지 대기 루프
-    node.get_logger().info("⏳ state='detected' 메시지 대기 중...")
-    while not detected_flag:
-        rclpy.spin_once(node, timeout_sec=0.1)
+    # # 감지 대기 루프
+    # node.get_logger().info("⏳ state='detected' 메시지 대기 중...")
+    # while not detected_flag:
+    #     rclpy.spin_once(node, timeout_sec=0.1)
 
-    node.get_logger().info("✅사용자 감지됨")
-    time.sleep(1)
+    # node.get_logger().info("✅사용자 감지됨")
+    # time.sleep(1)
 
     # qr code 체크하는 위치로 이동
     movesj([Jcheck_qr_waypoint, Jcheck_qr], vel=VELOCITY, acc=ACC)
 
-    # QR code 정보를 수신하는 subscriber 생성
+    # QR code 정보 또는 Voice를 수신하는 subscriber 생성
     qr_info_subscription = node.create_subscription(QRInfo, "/qr_info", qr_callback, 10)
+    voice_subscription = node.create_subscription(MedicineArray, "/medicine", voice_callback, 10)
 
     # 'check_qr' 상태를 VisionNode에 퍼블리시
     node.get_logger().info(f"📤 'check_qr' 상태 퍼블리시 중...")
@@ -202,16 +242,16 @@ def move_check_qr():
     robot_state_publisher.publish(robot_state_msg)
 
     # QR 정보가 들어올 때까지 대기
-    node.get_logger().info("🕐 QR 정보 대기 중...")
-    while rclpy.ok() and not qr_data_received:
+    node.get_logger().info("🕐 QR 정보 또는 Voice 대기 중...")
+    while rclpy.ok() and not qr_data_received and not voice_received:
         rclpy.spin_once(node, timeout_sec=0.1)  # 100ms 간격으로 체크
 
-    node.get_logger().info("✅ QR 정보 수신 완료, 다음 동작으로 진행")
-    time.sleep(2)
+    time.sleep(1)
 
     # 더 이상 필요 없는 subscriber 제거
     node.destroy_subscription(qr_info_subscription)
-    node.destroy_subscription(ultra_subscription)
+    node.destroy_subscription(voice_subscription)
+    # node.destroy_subscription(ultra_subscription)
     node.get_logger().info("========== 🏁 move_check_qr() 종료 ==========")
 
 
@@ -229,9 +269,26 @@ def qr_callback(msg):
         node.get_logger().info("========== QR 정보 수신 완료 ==========")
 
 
+'''voice 수신을 수신하는 콜백 함수'''
+def voice_callback(msg):
+    global voice_received, medicines, medicines_name
+
+    medicines = msg.medicines  # medicines (리스트)
+    medicines_name = [medicines[i] for i in range(len(medicines)) if not i % 2]
+    print(f"medicines_name = {medicines_name}")
+    voice_received = True
+    node.get_logger().info(f"========== ✅ Voice 수신 ==========")
+    node.get_logger().info(f"💊 비처방약: {medicines}")
+    node.get_logger().info("========== Voice 수신 완료 ==========")
+    
+
 '''서랍 텍스트 인식 위치로 이동하고 상태를 퍼블리시하는 함수'''
 def move_check_text():
     VELOCITY, ACC = 100, 100
+
+    node.get_logger().info("✅ QR 정보 수신 완료, 다음 동작으로 진행")
+    time.sleep(1)
+
     node.get_logger().info("========== 🏁 move_check_text() 시작! ==========")
 
     # 텍스트 인식 위치로 이동
@@ -463,9 +520,11 @@ def publish_check_pill_state():
 '''약 위치와 자세 메시지를 subscribe하고, 약을 집는 함수'''
 def pick_pill():
     VELOCITY, ACC = 100, 100
+
+    global pill_name
     node.get_logger().info("========== 🏁 pick_pill() 시작! ==========")
     
-    global x_base, y_base, theta, qr_disease
+    global x_base, y_base, theta, qr_disease, text_loc
     x_base, y_base, theta = 0, 0, 0  # 초기화
 
     # 약의 위치와 자세 정보를 수신하는 subscriber 생성
@@ -483,14 +542,14 @@ def pick_pill():
     time.sleep(1)
 
     # 서랍의 위치 별 z값 설정
-    if qr_disease == 'diarrhea':
-        z = 24.09
-    if qr_disease == 'dyspepsia':
+    if text_loc == 1:
+        z = 20.0
+    elif text_loc == 2:
         z = 24.12
-    elif qr_disease == 'dermatitis':
-        z = 111.63
-        z = 115.63
-    elif qr_disease == 'cold':
+    elif text_loc == 3:
+        # z = 111.63
+        z = 112.63
+    elif text_loc == 4:
         z = 111.23
     node.get_logger().info(f"💊 x = {x_base}, y = {y_base}, z = {z}")
 
@@ -500,8 +559,11 @@ def pick_pill():
     movel(pick_pos, vel=VELOCITY, acc=ACC)
     movej([0, 0, 0, 0, 0, theta], vel=VELOCITY, acc=ACC, mod=1)
 
-    # 그리퍼 15mm 만큼 열기
-    gripper.move_gripper(150)
+    # 약에 따라서 그리퍼 너비 조정
+    if pill_name == 'amoxicle_tab' or pill_name == 'panstar_tab':
+        gripper.move_gripper(170)   # 그리퍼 17mm 만큼 열기
+    else:
+        gripper.move_gripper(150)   # 그리퍼 15mm 만큼 열기
     time.sleep(1)
 
     # 약 있는 위치로 내리기
@@ -513,8 +575,11 @@ def pick_pill():
     task_compliance_ctrl(stx=[500, 500, 500, 100, 100, 100])
     time.sleep(0.5)
 
-    # 그리퍼 8mm로 닫기
-    gripper.move_gripper(80)
+    # 약에 따라서 그리퍼 너비 조정
+    if pill_name == 'amoxicle_tab' or pill_name == 'panstar_tab':
+        gripper.move_gripper(100)   # 그리퍼 10mm 만큼 열기
+    else:
+        gripper.move_gripper(80)    # 그리퍼 8mm로 닫기
     time.sleep(0.5)
 
     # 순응제어 off
@@ -792,23 +857,182 @@ def put_pill_in_bag():
     movej([0, 0, 90, 0, 90, 0], vel=VELOCITY, acc=ACC)
 
 
+''' 비처방 약 서랍 물품 집는 함수'''
+def handle_BTC(medicine, pick_pos, place_pos, is_floor2=False):
+    VELOCITY, ACC = 100, 100
 
-def main(args=None):
-    global qr_total_pills_count
+    grip_size = grip_dict.get(medicine)
 
-    move_check_qr()
-    move_check_text()
-    select_and_open_drawer()
-    for _ in range(qr_total_pills_count):
-        move_drawer_campose()
-        publish_check_pill_state()
-        pick_pill()
-        place_pill()
-    select_and_close_drawer()
-    put_pill_in_bag()
+    # 2층이라면 임시로 그리퍼 좁히기
+    if is_floor2:
+        gripper.move_gripper(550)
+
+    # 선택된 픽업 위치로 이동
+    movej(pick_pos, vel=VELOCITY, acc=ACC)
+    time.sleep(0.5)
+
+    # 실제 물체 크기대로 그리퍼 좁힘
+    gripper.move_gripper(grip_size)
+    time.sleep(0.5)
+
+    # 2층이면 턱 넘기
+    if is_floor2:
+        movec(floor_2_1, floor_2_2, time=5, mod=DR_MV_MOD_REL)
+        # 놓을 위치로 이동
+        movej(place_pos, vel=VELOCITY, acc=ACC)
+        time.sleep(0.5)
+
+    movesj(place_pos, vel=VELOCITY, acc=ACC)
+
+    task_compliance_ctrl(stx=[500, 500, 500, 100, 100, 100])
+    time.sleep(1)
+
+    set_desired_force(fd=[0, 0, -30, 0, 0, 0], dir=[0, 0, 1, 0, 0, 0], mod=DR_FC_MOD_REL)
+    time.sleep(1)
+
+    # 힘 조건 감지 (Z축 20N 이하)
+    while check_force_condition(DR_AXIS_Z, max=20) == 0:
+        time.sleep(0.2)
+
+    # 닿은 위치 기록 (optional)
+    pos_z = get_current_posx()[0][2]
+    print(f'[INFO] 바닥 감지: Z = {pos_z:.2f} mm')
+
+    # 7. 물체 놓기
+    gripper.open_gripper()
+    time.sleep(0.5)
+
+    # 8. Force Control 해제
+    release_force()
+    time.sleep(1)
+    release_compliance_ctrl()
+    time.sleep(1)
+
+    # 9. 시작 위치로 복귀
     movej(JReady, vel=VELOCITY, acc=ACC)
 
+def BTC_1(medicine):
+    handle_BTC(medicine, pick_pos=Jpos_B, place_pos=Jpos_L, is_floor2=False)
+
+def BTC_2(medicine):
+    handle_BTC(medicine, pick_pos=Jpos_A, place_pos=Jpos_R, is_floor2=False)
+
+def BTC_3(medicine):
+    handle_BTC(medicine, pick_pos=Jpos_D, place_pos=Put_place, is_floor2=True)
+
+def BTC_4(medicine):
+    handle_BTC(medicine, pick_pos=Jpos_C, place_pos=Put_place, is_floor2=True)
+
+
+'''비처방약 물품을 vision_node에 퍼블리시하는 함수'''
+def publish_medicine(medicine):
+    # medicine을 VisionNode에 퍼블리시
+    node.get_logger().info(f"📤 medicine 퍼블리시 중...")
+    medicine_msg = Medicine()
+    medicine_msg.name = medicine
+    medicine_publisher.publish(medicine_msg)
+
+
+'''선반을 바라보는 자세로 이동 후 'shelf_state'를 vision에 퍼블리시하는 함수'''
+def move_shelf_state():
+    VELOCITY, ACC = 100, 100
+    movej(Jpos1, vel=VELOCITY, acc=ACC)
+
+    # 'shelf_state' 상태를 VisionNode에 퍼블리시
+    node.get_logger().info(f"📤 'shelf_state' 상태 퍼블리시 중...")
+    robot_state_msg = RobotState()
+    robot_state_msg.robot_state = "shelf_state"
+    robot_state_publisher.publish(robot_state_msg)
+
+
+'''medicine의 위치를 subscribtion하고, 물건을 집을 위치를 선택하는 함수'''
+def choice_BTC(medicine):
+
+    global medicine_loc, medicine_loc_received
+
+    # medicine의 위치를 수신하는 subscriber 생성
+    medicine_loc_subscription = node.create_subscription(TextLoc, "/medicine_loc", medicine_loc_callback, 10)
+
+    # medicine의 위치를 subscription할 때까지 대기
+    node.get_logger().info("🕐 medicine_loc 대기 중...")
+    while rclpy.ok() and not medicine_loc_received:
+        rclpy.spin_once(node, timeout_sec=0.1)  # 100ms 간격으로 체크
+
+    time.sleep(1)
+
+    # 더 이상 필요 없는 subscriber 제거
+    node.destroy_subscription(medicine_loc_subscription)
+
+    # 'pick_medicine' 상태를 VisionNode에 퍼블리시
+    node.get_logger().info(f"📤 'pick_medicine' 상태 퍼블리시 중...")
+    robot_state_msg = RobotState()
+    robot_state_msg.robot_state = "pick_medicine"
+    robot_state_publisher.publish(robot_state_msg)
+
+    if medicine_loc == 1:
+        BTC_1(medicine)
+    elif medicine_loc == 2:
+        BTC_2(medicine)
+    elif medicine_loc == 3:
+        BTC_3(medicine)
+    elif medicine_loc == 4:
+        BTC_4(medicine)
+
+
+'''medicine_loc 정보를 수신하는 콜백 함수'''
+def medicine_loc_callback(msg):
+    global medicine_loc, medicine_loc_received
+    medicine_loc_received = True
+    medicine_loc = msg.text_loc
+    node.get_logger().info(f"========== ✅ medicine location 수신 ==========")
+    node.get_logger().info(f"📥 medicine_loc 수신됨: [{medicine_loc}]번 위치")
+    node.get_logger().info("========== medicine location 수신 완료 ==========")
+
+
+
+def main(args=None):
+    global qr_data_received, voice_received, qr_total_pills_count
+    # global text_loc #### 테스트용
+
+    move_check_qr()
+    # QR 인식 시 처방약
+    if qr_data_received:
+        move_check_text()
+        select_and_open_drawer()
+        for _ in range(qr_total_pills_count):
+            move_drawer_campose()
+            publish_check_pill_state()
+            pick_pill()
+            place_pill()
+        select_and_close_drawer()
+        put_pill_in_bag()
+
+    # Voice 인식 시 비처방약
+    elif voice_received:
+        for medicine in medicines_name:
+            publish_medicine(medicine)
+            move_shelf_state()
+            choice_BTC(medicine)
+
+    movej(JReady, vel=VELOCITY, acc=ACC)
     rclpy.shutdown()
+
+
+
+    #### 테스트용 ####
+    # text_loc = 2
+    # qr_total_pills_count = 6
+    # movej(JReady, vel=VELOCITY, acc=ACC)
+    # for _ in range(qr_total_pills_count):
+    #     move_drawer_campose()
+    #     publish_check_pill_state()
+    #     pick_pill()
+    #     place_pill()
+    # # select_and_close_drawer()
+    # # put_pill_in_bag()
+    # movej(JReady, vel=VELOCITY, acc=ACC)
+    # rclpy.shutdown()
+    #### 테스트용 ####
 
 
 if __name__ == "__main__":

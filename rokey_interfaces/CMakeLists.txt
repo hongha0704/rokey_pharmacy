@@ -19,6 +19,8 @@ set(msg_files
   "msg/QRInfo.msg"
   "msg/TextLoc.msg"
   "msg/PillLoc.msg"
+  "msg/Medicine.msg"
+  "msg/MedicineArray.msg"
 )
 rosidl_generate_interfaces(${PROJECT_NAME}
   ${msg_files}

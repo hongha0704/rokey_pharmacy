@@ -63,7 +63,7 @@ class VisionNode(Node):
         # YOLO 가중치 파일 이름, 신뢰도 설정
         self.diarrhea_yolo_weights = 'diarrhea.pt'
         self.dyspepsia_yolo_weights = 'dyspepsia.pt'
-        self.dermatitis_yolo_weights = 'dermatitis_2.pt'
+        self.dermatitis_yolo_weights = 'dermatitis.pt'
         self.cold_yolo_weights = 'cold.pt'
         self.CONFIDENCE = 0.50
 
@@ -74,6 +74,7 @@ class VisionNode(Node):
         # QR 코드가 최초로 인식되었는지 여부
         self.qr_detected = False
         self.detected_diseases = []
+        self.disease = ''
 
         '''추가'''
         # 집어야 하는 약의 리스트 (예: ['monodoxy_cap', 'monodoxy_cap', 'monodoxy_cap', 'ganakhan_tab', 'ganakhan_tab'])
@@ -82,8 +83,8 @@ class VisionNode(Node):
         
         '''추가'''
         # 약의 형태에 따라 원 또는 타원으로 추정하기 위한 리스트
-        self.circle_pill_list = ['panstar_tab', 'ganakhan_tab', 'magmil_tab', 'samsung_octylonium_tab', 'famodine']
         self.ellipse_pill_list = ['amoxicle_tab', 'sudafed_tab','monodoxy_cap', 'nexilen_tab', 'medilacsenteric_tab', 'otillen_tab']
+        self.circle_pill_list = ['panstar_tab', 'ganakan_tab', 'magmil_tab', 'samsung_octylonium_tab', 'famodine']
         
         # text_loc가 최초로 인식되었는지 여부
         self.text_loc_detected = False
@@ -119,8 +120,7 @@ class VisionNode(Node):
         elif msg.robot_state == 'detect_pill':
             self.get_logger().info("[INFO] 카메라 알약 인식 시작...")
 
-            self.disease = 'dermatitis'  ############ 테스트용 ############
-
+            print(f'self.disease = {self.disease}')
             if self.disease == 'diarrhea':
                 self.yolo_weights = self.diarrhea_yolo_weights
             elif self.disease == 'dyspepsia':
@@ -223,6 +223,7 @@ class VisionNode(Node):
                     self.get_logger().info(f"💊 병: {symptom}, 약: {pills}, 복용: {dosages}")
 
                     self.detected_diseases.append(symptom)
+                    self.disease = symptom
                     calculated_dosages = []
                     for dosage in dosages:
                         try:
@@ -271,7 +272,7 @@ class VisionNode(Node):
 
         CLASSIFIER_PATH = os.path.join(package_share_directory, 'weights', 'text_classifier.pth')
         CLASSIFICATION_SIZE = (64, 128)
-        CONFIDENCE = 0.75
+        CONFIDENCE = 0.40
 
         # 🧠 Classification 모델 로드
         checkpoint = torch.load(CLASSIFIER_PATH)
@@ -421,6 +422,10 @@ class VisionNode(Node):
                 class_name = self.yolo_model.names[cls]
                 color = self.class_colors.get(cls, (0, 255, 0))
 
+                # cold의 'sudafed_tab'은 감지에서 제외(너무 작음)
+                if class_name == 'sudafed_tab':
+                    continue
+
                 mask = masks[i]
                 mask_bool = mask > 0.5
 
@@ -441,22 +446,39 @@ class VisionNode(Node):
                 if len(xs) > 0 and len(ys) > 0:
                     x1, y1 = np.min(xs), np.min(ys)
                     cv2.putText(annotated_frame, class_name, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2)
-
+                
+                # 세그멘테이션 마스크의 외곽선을 사용하여 원 또는 타원 추정
                 if contours and len(contours[0]) >= 5:
-                    ellipse = cv2.fitEllipse(contours[0])
-                    (center, axes, angle) = ellipse
+                    # 약 모양이 타원형일 때 타원 모양 추정
+                    if class_name in self.ellipse_pill_list:
+                        ellipse = cv2.fitEllipse(contours[0])
+                        (center, axes, angle) = ellipse
 
-                    # 타원 그리기
-                    if ellipse[1][0] > 0 and ellipse[1][1] > 0:
-                        cv2.ellipse(annotated_frame, ellipse, color, 2)
-                    else:
-                        print(f"[경고] 유효하지 않은 ellipse: {ellipse}")
-                    # 회전 각도 텍스트 출력
-                    angle_text = f"{angle:.1f} deg"
-                    cv2.putText(annotated_frame, angle_text, (int(center[0]) + 35, int(center[1])), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
-                    # 중심점 좌표 텍스트 출력
-                    center_text = f"({int(center[0])}, {int(center[1])})"
-                    cv2.putText(annotated_frame, center_text, (int(center[0]) + 35, int(center[1]) + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
+                        if ellipse[1][0] > 0 and ellipse[1][1] > 0:
+                            # 타원, 중심점 그리기
+                            cv2.ellipse(annotated_frame, ellipse, color, 2)
+                            cv2.circle(annotated_frame, (int(center[0]), int(center[1])), 5, color, -1)
+                        else:
+                            print(f"[경고] 유효하지 않은 ellipse: {ellipse}")
+
+                        # 회전 각도, 중심점 좌표 텍스트 출력
+                        angle_text = f"{angle:.1f} deg"
+                        center_text = f"({int(center[0])}, {int(center[1])})"
+                        cv2.putText(annotated_frame, angle_text, (int(center[0]) + 35, int(center[1])), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
+                        cv2.putText(annotated_frame, center_text, (int(center[0]) + 35, int(center[1]) + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
+
+                    # 약 모양이 원형일 때 원 모양 추정
+                    elif class_name in self.circle_pill_list:
+                        (x, y), radius = cv2.minEnclosingCircle(contours[0])
+                        center = (int(x), int(y))
+                        radius = int(radius)
+                        angle = 0
+
+                        # 원, 중심점 그리기, text 출력
+                        center_text = f"({int(center[0])}, {int(center[1])})"
+                        cv2.circle(annotated_frame, center, radius, color, 2)
+                        cv2.circle(annotated_frame, center, 5, color, -1)
+                        cv2.putText(annotated_frame, center_text, (int(center[0]) + 35, int(center[1]) + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
 
                     '''추가'''
                     # 집어야하는 약 순서대로 좌표 저장 (예: ['monodoxy_cap', 'monodoxy_cap', 'monodoxy_cap', 'ganakhan_tab', 'ganakhan_tab'])
@@ -501,9 +523,6 @@ class VisionNode(Node):
                 self.get_logger().info(f"📤 Pill publish: {pill_name} ({index+1}/{total}) → (x : {pill_loc_msg.x}, y : {pill_loc_msg.y}, theta : {pill_loc_msg.theta})")
 
                 self.pill_list_index += 1
-
-                # self.get_logger().info(f"📤 Pill location publish: {pill_loc_msg}")
-                # self.get_logger().info(f"📤 Pill location (x_base = {pill_loc_msg.x}, y_base = {pill_loc_msg.y}, theta = {pill_loc_msg.theta})")
 
         return annotated_frame
     
