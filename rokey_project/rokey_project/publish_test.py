@@ -1,3 +1,5 @@
+'''사용자 입력을 받아 publish 하여 통신을 테스트하는 파일'''
+
 import rclpy
 from rclpy.node import Node
 from rokey_interfaces.msg import RobotState  # 메시지 타입 import

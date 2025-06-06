@@ -174,13 +174,14 @@ grip_dict = {"tylenol": 150, "bandage": 300, "sore_patch": 300, "codaewon_syrup"
 # 플래그 및 수신 데이터
 qr_data_received = False
 voice_received = False
+text_loc_data_received = False
+detected_flag = False
 medicine_loc_received = False
-medicine_loc = 0
-medicines_name = []
+
+# QR 정보 초기화
 qr_disease = None
 qr_pill_list = None
 qr_total_pills_count = 0
-detected_flag = False
 
 # 약 위치 초기화
 x_base, y_base, theta = 0, 0, 0
@@ -188,7 +189,10 @@ pill_name, index, total = None, None, None
 
 # text 위치 초기화
 text_loc = None
-text_loc_data_received = False
+
+# 비처방약 위치, 이름 초기화
+medicine_loc = 0
+medicines_name = []
 
 # robot_state publisher 생성
 robot_state_publisher = node.create_publisher(RobotState, "/robot_state", 10)
@@ -552,11 +556,11 @@ def pick_pill():
         z = 24.12
     elif text_loc == 3:
         z = 111.00
-        # y축 오차로 인해 살짝 조정
+        # y축 오차로 인한 보정
         y_base -= 5
     elif text_loc == 4:
         z = 111.00
-        # x, y축 오차로 인해 살짝 조정
+        # x, y축 오차로 인한 보정
         x_base -= 3
         y_base -= 5
     node.get_logger().info(f"💊 x = {x_base}, y = {y_base}, z = {z}")
@@ -690,8 +694,8 @@ def close_drawer_1():
     gripper.move_gripper(170)
     time.sleep(1)
 
-    # 서랍장 살짝 들기 (z축 4mm, x축 -4mm)
-    movel([-4.0, 0, 4.0, 0, 0, 0], vel=50, acc=50, mod=1)
+    # 서랍장 살짝 들기 (z축 6mm, x축 -6mm)
+    movel([-6.0, 0, 6.0, 0, 0, 0], vel=50, acc=50, mod=1)
     time.sleep(0.5)
 
     # 서랍장 넣기 (x축 80mm)
@@ -728,8 +732,8 @@ def close_drawer_2():
     gripper.move_gripper(170)
     time.sleep(1)
 
-    # 서랍장 살짝 들기 (z축 4mm, x축 4mm)
-    movel([4.0, 0, 4.0, 0, 0, 0], vel=50, acc=50, mod=1)
+    # 서랍장 살짝 들기 (z축 6mm, x축 -6mm)
+    movel([-6.0, 0, 6.0, 0, 0, 0], vel=50, acc=50, mod=1)
     time.sleep(0.5)
 
     # 서랍장 넣기 (x축 80mm)
@@ -766,8 +770,8 @@ def close_drawer_3():
     gripper.move_gripper(170)
     time.sleep(1)
 
-    # 서랍장 살짝 들기 (z축 4mm, x축 -4mm)
-    movel([-4.0, 0, 4.0, 0, 0, 0], vel=50, acc=50, mod=1)
+    # 서랍장 살짝 들기 (z축 6mm, x축 -6mm)
+    movel([-6.0, 0, 6.0, 0, 0, 0], vel=50, acc=50, mod=1)
     time.sleep(0.5)
 
     # 서랍장 넣기 (x축 100mm)
@@ -804,8 +808,8 @@ def close_drawer_4():
     gripper.move_gripper(170)
     time.sleep(1)
 
-    # 서랍장 살짝 들기 (z축 4mm, x축 4mm)
-    movel([4.0, 0, 4.0, 0, 0, 0], vel=50, acc=50, mod=1)
+    # 서랍장 살짝 들기 (z축 6mm, x축 -6mm)
+    movel([-6.0, 0, 6.0, 0, 0, 0], vel=50, acc=50, mod=1)
     time.sleep(0.5)
 
     # 서랍장 넣기 (x축 100mm)
@@ -873,6 +877,9 @@ def put_pill_in_bag():
 def handle_BTC(medicine, pick_pos, place_pos, is_floor2=False):
     VELOCITY, ACC = 100, 100
 
+    global qr_pill_list
+
+    qr_pill_list = [medicine.name]
     grip_size = grip_dict.get(medicine.name)
 
     # 2층이라면 임시로 그리퍼 좁히기
@@ -893,8 +900,8 @@ def handle_BTC(medicine, pick_pos, place_pos, is_floor2=False):
         # 놓을 위치로 이동
         movej(place_pos, vel=VELOCITY, acc=ACC)
         time.sleep(0.5)
-
-    movej(place_pos, vel=VELOCITY, acc=ACC)
+    else:
+        movesj(place_pos, vel=VELOCITY, acc=ACC)
 
     # x 방향에 외력이 가해질 때까지 대기
     print("약을 가져가 주세요! (x방향 외력)")
@@ -909,9 +916,9 @@ def handle_BTC(medicine, pick_pos, place_pos, is_floor2=False):
             print("약 포장을 시작합니다.")
             break
         
-    # 외력이 가해지면 그리퍼 열기 (30mm)
+    # 외력이 가해지면 그리퍼 열기 (70mm)
     time.sleep(0.5)
-    gripper.move_gripper(300)
+    gripper.move_gripper(700)
     time.sleep(1)
 
     # 9. 시작 위치로 복귀
@@ -974,6 +981,8 @@ def choice_BTC(medicine):
     robot_state_msg.robot_state = "pick_medicine"
     robot_state_publisher.publish(robot_state_msg)
 
+    gripper.move_gripper(600)
+
     if medicine_loc == 1:
         BTC_1(medicine)
     elif medicine_loc == 2:
@@ -999,9 +1008,6 @@ def finish_publish():
     global qr_disease, qr_pill_list
     node.get_logger().info("========== 🏁 finish_publish() 시작! ==========")
 
-    # qr_disease = 'dyspepsia'
-    # qr_pill_list = ['nexilen_tab', 'medilacsenteric_tab', 'magmil_tab']
-    # print(f'qr_pill_string = {qr_pill_string}')
     qr_pill_string = f"'{ ' '.join(qr_pill_list) }'"
 
     # 'explain_medicine' 상태를 VisionNode에 퍼블리시
@@ -1040,35 +1046,11 @@ def main(args=None):
             publish_medicine(medicine)
             move_shelf_state()
             choice_BTC(medicine)
+            finish_publish()
 
     movej(JReady, vel=VELOCITY, acc=ACC)
     time.sleep(3)
     rclpy.shutdown()
-
-
-
-    #### 테스트용 ####
-    # global text_loc #### 테스트용
-    # text_loc = 4
-    # qr_total_pills_count = 6
-    # movej(JReady, vel=VELOCITY, acc=ACC)
-    # for _ in range(qr_total_pills_count):
-    #     move_drawer_campose()
-    #     publish_check_pill_state()
-    #     pick_pill()
-    #     place_pill()
-    # # select_and_close_drawer()
-    # # put_pill_in_bag()
-    # movej(JReady, vel=VELOCITY, acc=ACC)
-    # rclpy.shutdown()
-    #### 테스트용 ####
-
-    # movej(JReady, vel=VELOCITY, acc=ACC)
-    # open_drawer_4()
-    # movej(Jdrawer_4_campose, vel=VELOCITY, acc=ACC)
-    
-    finish_publish()
-    # rclpy.shutdown()
 
 
 if __name__ == "__main__":

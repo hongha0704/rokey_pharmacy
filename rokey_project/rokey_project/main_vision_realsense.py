@@ -98,21 +98,6 @@ class VisionNode(Node):
         # 서랍 구역 저장
         self.text_loc = 0
 
-        #### 테스트용 ####
-        # self.pill_list = ['otillen_tab', 'otillen_tab', 'otillen_tab']
-        # self.disease = 'diarrhea'
-        # self.text_loc = 1
-        # self.pill_list = ['monodoxy_cap', 'ganakan_tab']
-        # self.disease = 'dermatitis'
-        # self.text_loc = 2
-        # self.pill_list = ['panstar_tab', 'panstar_tab', 'panstar_tab', 'amoxicle_tab', 'amoxicle_tab']
-        # self.disease = 'cold'
-        # self.text_loc = 3
-        # self.pill_list = ['nexilen_tab', 'medilacsenteric_tab', 'medilacsenteric_tab', 'magmil_tab', 'magmil_tab', 'magmil_tab']
-        # self.disease = 'dyspepsia'
-        # self.text_loc = 4
-        #### 테스트용 ####
-
         # YOLO 모델 관련 변수 초기화
         self.yolo_model = None
         self.yolo_start_time = None
@@ -128,7 +113,6 @@ class VisionNode(Node):
                                   'nexilen_tab': (0, 255, 255),             # dyspepsia
                                   'medilacsenteric_tab': (0, 255, 0),       # dyspepsia
                                   'magmil_tab': (0, 0, 255),                # dyspepsia
-                                  
                                   }
 
         # 약의 위치 및 각도를 저장하는 리스트 (x, y, theta)
@@ -142,6 +126,7 @@ class VisionNode(Node):
         # robot current_posx 갱신
         self.robot_current_posx = msg.current_posx
         self.get_logger().info(f'📥 Robot current_posx 수신')
+
 
     '''medicine 메시지 수신 시 호출되는 콜백 함수'''
     def medicine_callback(self, msg):
@@ -165,7 +150,6 @@ class VisionNode(Node):
         elif msg.robot_state == 'detect_pill':
             self.get_logger().info("[INFO] 카메라 알약 인식 시작...")
 
-            print(f'self.disease = {self.disease}')
             if self.disease == 'diarrhea':
                 self.yolo_weights = self.diarrhea_yolo_weights
             elif self.disease == 'dyspepsia':
@@ -296,7 +280,6 @@ class VisionNode(Node):
                     self.get_logger().info(f"📦 필요한 약 목록: {self.required_pills}")
                     self.get_logger().info(f"📦 약별 필요한 개수: {self.required_counts}")
 
-                    '''추가'''
                     # 집어야 하는 약의 리스트 생성 (예: ['monodoxy_cap', 'monodoxy_cap', 'monodoxy_cap', 'ganakhan_tab', 'ganakhan_tab'])
                     for pill_name in self.required_pills:
                         for _ in range(self.required_counts[pill_name]):
@@ -382,7 +365,6 @@ class VisionNode(Node):
                 class_name = classification_classes[predicted.item()]
                 confidence = conf.item()
 
-
             # # 🎨 classifier 클래스 기준 색상
             # color = class_colors.get(class_name, (0, 255, 0))
             # label = f"{class_name} ({confidence:.2f})"
@@ -453,7 +435,7 @@ class VisionNode(Node):
 
         annotated_frame = frame.copy()
 
-        # ROI 사각형 그리기 cold
+        # ROI 사각형 그리기
         if self.text_loc == 1:
             self.CONFIDENCE = 0.40
             roi_start = (290, 165)
@@ -553,13 +535,7 @@ class VisionNode(Node):
                         cv2.circle(annotated_frame, center, 5, color, -1)
                         cv2.putText(annotated_frame, center_text, (int(center[0]) + 35, int(center[1])), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
 
-                    '''추가'''
                     # 집어야하는 약 순서대로 좌표 저장 (예: ['monodoxy_cap', 'monodoxy_cap', 'monodoxy_cap', 'ganakhan_tab', 'ganakhan_tab'])
-                    # ROI 안에 있는 약만 저장
-                    # if (class_name == self.pill_list[self.pill_list_index]
-                    #     and roi_start[0] <= int(center[0]) <= roi_end[0]
-                    #     and roi_start[1] <= int(center[1]) <= roi_end[1]
-                    # ):
                     if class_name == self.pill_list[self.pill_list_index]:
                         # 약 위치 저장
                         self.pill_loc = [int(center[0]), int(center[1]), int(angle)]
@@ -567,14 +543,12 @@ class VisionNode(Node):
         # 일정 시간 경과 후 YOLO 모델 종료 처리
         elapsed = time.time() - self.yolo_start_time
         second = 4.0
-        # second = 1000000000.0
         if elapsed > second:
             self.get_logger().info(f"[INFO] YOLO 모델 {second}초 경과, 메모리 해제 중...")
             self.yolo_model = None
             self.yolo_running = False
             self.get_logger().info("[INFO] YOLO 모델 메모리 해제 완료!")
 
-            '''추가'''
             # self.pill_list_index가 처방해야 할 약의 총 개수보다 높으면 루프 종료
             if len(self.pill_list) <= self.pill_list_index:
                 self.get_logger().info("[INFO] 약 모두 처방 완료!")
@@ -610,13 +584,10 @@ class VisionNode(Node):
             rclpy.spin_once(self.img_node)
             depth_frame = self.img_node.get_depth_frame()
 
-        # print(f"img cordinate: ({x}, {y})")
         z = self.get_depth_value(x, y, depth_frame)
         camera_center_pos = self.get_camera_pos(x, y, z, self.intrinsics)
-        # print(f"camera cordinate: ({camera_center_pos})")
 
         gripper_coordinate = self.transform_to_base(camera_center_pos)
-        # print(f"gripper cordinate: ({gripper_coordinate})")
 
         return gripper_coordinate
 
@@ -667,10 +638,8 @@ class VisionNode(Node):
         results = self.yolo_model(frame, verbose=False)
         annotated_frame = frame.copy()
 
-        # if results and results[0].masks is not None:
         if results:
             boxes = results[0].boxes
-            # masks = results[0].masks.data.cpu().numpy()  # (num_masks, H, W)
 
             for i, box in enumerate(boxes):
                 conf = box.conf.item()
@@ -700,7 +669,7 @@ class VisionNode(Node):
 
         # 일정 시간 경과 후 YOLO 모델 종료 처리
         elapsed = time.time() - self.yolo_start_time
-        second = 10.0
+        second = 6.0
         if elapsed > second:
             self.get_logger().info(f"[INFO] YOLO 모델 {second}초 경과, 메모리 해제 중...")
             self.yolo_model = None
@@ -709,9 +678,9 @@ class VisionNode(Node):
 
             # 물건이 위치한 구역 판별
             if self.cx < 335 and self.cy > 185:
-                loc = 1
-            elif self.cx >= 335 and self.cy > 185:
                 loc = 2
+            elif self.cx >= 335 and self.cy > 185:
+                loc = 1
             elif self.cx < 335 and self.cy <= 185:
                 loc = 3
             elif self.cx >= 335 and self.cy <= 185:

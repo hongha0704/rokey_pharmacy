@@ -1,3 +1,5 @@
+'''처방전 파일의 내용을 QR코드로 생성해주는 파일'''
+
 from docx import Document
 import qrcode
 

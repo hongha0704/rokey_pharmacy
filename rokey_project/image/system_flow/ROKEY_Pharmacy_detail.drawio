@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36" version="27.1.3">
   <diagram name="페이지-1" id="VVqCfOVXfzy3V_eHcKEl">
-    <mxGraphModel dx="1595" dy="899" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" background="#ffffff" math="0" shadow="0">
+    <mxGraphModel dx="1085" dy="611" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" background="#ffffff" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -101,16 +101,16 @@
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="4uhuHD_OqtdL1rbwjFQc-22" value="Vision" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" parent="1" vertex="1">
-          <mxGeometry x="25" y="800" width="90" height="30" as="geometry" />
+          <mxGeometry x="25" y="810" width="90" height="30" as="geometry" />
         </mxCell>
         <mxCell id="4uhuHD_OqtdL1rbwjFQc-23" value="Robot Control" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" parent="1" vertex="1">
-          <mxGeometry x="237" y="800" width="126" height="30" as="geometry" />
+          <mxGeometry x="237" y="810" width="126" height="30" as="geometry" />
         </mxCell>
         <mxCell id="4Y7MrG0Yg-tEDEvkfqsa-24" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="4uhuHD_OqtdL1rbwjFQc-24" target="4uhuHD_OqtdL1rbwjFQc-26">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="4uhuHD_OqtdL1rbwjFQc-24" value="Voice" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" parent="1" vertex="1">
-          <mxGeometry x="465" y="800" width="110" height="30" as="geometry" />
+          <mxGeometry x="465" y="810" width="110" height="30" as="geometry" />
         </mxCell>
         <mxCell id="NTEcIHUlj5o2l75i7hv5-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="4uhuHD_OqtdL1rbwjFQc-26" target="NTEcIHUlj5o2l75i7hv5-6" edge="1">
           <mxGeometry relative="1" as="geometry" />
@@ -119,30 +119,51 @@
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="4uhuHD_OqtdL1rbwjFQc-26" value="의약품 약 요청" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-          <mxGeometry x="465" y="889" width="110" height="30" as="geometry" />
+          <mxGeometry x="465" y="899" width="110" height="30" as="geometry" />
         </mxCell>
         <mxCell id="4uhuHD_OqtdL1rbwjFQc-28" value="일반의약품 구매" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
-          <mxGeometry x="25" y="760" width="775" height="30" as="geometry" />
+          <mxGeometry x="25" y="770" width="775" height="30" as="geometry" />
         </mxCell>
         <mxCell id="4Y7MrG0Yg-tEDEvkfqsa-39" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="4uhuHD_OqtdL1rbwjFQc-29" target="4uhuHD_OqtdL1rbwjFQc-37">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="4uhuHD_OqtdL1rbwjFQc-29" value="선반 바라보는 자세" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-          <mxGeometry x="237" y="950" width="123" height="30" as="geometry" />
+        <mxCell id="4Y7MrG0Yg-tEDEvkfqsa-52" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="70" y="971" as="targetPoint" />
+            <mxPoint x="237" y="971" as="sourcePoint" />
+          </mxGeometry>
         </mxCell>
-        <mxCell id="4Y7MrG0Yg-tEDEvkfqsa-29" value="&lt;span style=&quot;forced-color-adjust: none; color: light-dark(rgb(0, 0, 0), rgb(237, 237, 237)); font-family: Helvetica; font-size: 11px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: nowrap; background-color: light-dark(rgb(255, 255, 255), rgb(18, 18, 18)); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; float: none; display: inline !important;&quot; data-mx-given-colors=&quot;{&amp;quot;color&amp;quot;:&amp;quot;rgb(0, 0, 0)&amp;quot;,&amp;quot;background-color&amp;quot;:&amp;quot;rgb(255, 255, 255)&amp;quot;}&quot;&gt;탐지 정보&lt;/span&gt;&lt;div style=&quot;forced-color-adjust: none; color: light-dark(rgb(0, 0, 0), rgb(237, 237, 237)); font-family: Helvetica; font-size: 11px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: nowrap; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;&quot; data-mx-given-colors=&quot;{&amp;quot;color&amp;quot;:&amp;quot;rgb(0, 0, 0)&amp;quot;}&quot;&gt;Topic&lt;/div&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="4uhuHD_OqtdL1rbwjFQc-32" target="4uhuHD_OqtdL1rbwjFQc-29">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="4Y7MrG0Yg-tEDEvkfqsa-53" value="&lt;span style=&quot;color: rgb(0, 0, 0); background-color: rgb(255, 255, 255); float: none; display: inline !important;&quot;&gt;/robot_state&lt;/span&gt;&lt;div style=&quot;color: rgb(0, 0, 0);&quot;&gt;topic&lt;/div&gt;&lt;div style=&quot;color: rgb(0, 0, 0);&quot;&gt;&#39;shelf state&#39;&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="4Y7MrG0Yg-tEDEvkfqsa-52">
+          <mxGeometry x="-0.3225" y="2" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="4uhuHD_OqtdL1rbwjFQc-29" value="선반 바라보는 자세" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="237" y="960" width="123" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="4Y7MrG0Yg-tEDEvkfqsa-51" value="&lt;div&gt;/medicine_loc&lt;br&gt;&lt;div style=&quot;forced-color-adjust: none; color: rgb(0, 0, 0); font-family: Helvetica; font-size: 11px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: nowrap; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;&quot;&gt;Topic&lt;/div&gt;&lt;/div&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1">
+          <mxGeometry x="-0.3732" relative="1" as="geometry">
+            <mxPoint x="290" y="1013" as="targetPoint" />
+            <mxPoint x="115" y="1013" as="sourcePoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
         </mxCell>
         <mxCell id="4uhuHD_OqtdL1rbwjFQc-32" value="일반의약품&lt;div&gt;객체 탐지&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-          <mxGeometry x="25" y="940" width="90" height="50" as="geometry" />
+          <mxGeometry x="25" y="991" width="90" height="40" as="geometry" />
         </mxCell>
         <mxCell id="4Y7MrG0Yg-tEDEvkfqsa-34" value="&lt;span style=&quot;forced-color-adjust: none; color: light-dark(rgb(0, 0, 0), rgb(237, 237, 237)); font-family: Helvetica; font-size: 11px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: nowrap; background-color: light-dark(rgb(255, 255, 255), rgb(18, 18, 18)); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; float: none; display: inline !important;&quot; data-mx-given-colors=&quot;{&amp;quot;color&amp;quot;:&amp;quot;rgb(0, 0, 0)&amp;quot;,&amp;quot;background-color&amp;quot;:&amp;quot;rgb(255, 255, 255)&amp;quot;}&quot;&gt;/task_state&lt;/span&gt;&lt;div style=&quot;forced-color-adjust: none; color: light-dark(rgb(0, 0, 0), rgb(237, 237, 237)); font-family: Helvetica; font-size: 11px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: nowrap; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;&quot; data-mx-given-colors=&quot;{&amp;quot;color&amp;quot;:&amp;quot;rgb(0, 0, 0)&amp;quot;}&quot;&gt;topic&lt;/div&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="4uhuHD_OqtdL1rbwjFQc-37">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="520" y="1021" as="targetPoint" />
+            <mxPoint x="520" y="1044" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="4Y7MrG0Yg-tEDEvkfqsa-55" value="&lt;span style=&quot;forced-color-adjust: none; color: rgb(0, 0, 0); font-family: Helvetica; font-size: 11px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: nowrap; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; float: none; display: inline !important;&quot;&gt;/robot_state&lt;/span&gt;&lt;div style=&quot;forced-color-adjust: none; color: rgb(0, 0, 0); font-family: Helvetica; font-size: 11px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: nowrap; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;&quot;&gt;topic&lt;/div&gt;&lt;div style=&quot;forced-color-adjust: none; color: rgb(0, 0, 0); font-family: Helvetica; font-size: 11px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: nowrap; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;&quot;&gt;&#39;pick_medicine&#39;&lt;/div&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="4uhuHD_OqtdL1rbwjFQc-37">
+          <mxGeometry x="-0.2" y="6" relative="1" as="geometry">
+            <mxPoint x="70" y="1044" as="targetPoint" />
+            <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>
         <mxCell id="4uhuHD_OqtdL1rbwjFQc-37" value="물품 pick and place" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-          <mxGeometry x="237" y="1006" width="123" height="30" as="geometry" />
+          <mxGeometry x="237" y="1029" width="123" height="30" as="geometry" />
         </mxCell>
         <mxCell id="ZfewzwySDCzYrbojLsdr-20" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="ZfewzwySDCzYrbojLsdr-17" target="ZfewzwySDCzYrbojLsdr-19" edge="1">
           <mxGeometry relative="1" as="geometry" />
@@ -184,7 +205,7 @@
           <mxGeometry x="130" y="439" width="90" height="70" as="geometry" />
         </mxCell>
         <mxCell id="ZfewzwySDCzYrbojLsdr-42" value="종료" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;arcSize=23;" parent="1" vertex="1">
-          <mxGeometry x="130" y="710" width="670" height="30" as="geometry" />
+          <mxGeometry x="130" y="730" width="670" height="30" as="geometry" />
         </mxCell>
         <mxCell id="ZfewzwySDCzYrbojLsdr-56" value="&lt;font style=&quot;font-size: 8px;&quot;&gt;/qr_info&lt;/font&gt;&lt;div&gt;&lt;font style=&quot;font-size: 8px;&quot;&gt;&lt;font style=&quot;&quot;&gt;[&#39;cold&#39;, &#39;amoxicle_tab&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;&amp;nbsp;2&#39;&lt;/span&gt;&lt;/font&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;]&lt;/span&gt;&lt;/font&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="20" y="187.5" width="90" height="31.5" as="geometry" />
@@ -204,6 +225,9 @@
         <mxCell id="VaNRtjLqdTXlUVfQ7H0l-1" value="Voice" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" parent="1" vertex="1">
           <mxGeometry x="490" y="64" width="130" height="30" as="geometry" />
         </mxCell>
+        <mxCell id="4Y7MrG0Yg-tEDEvkfqsa-43" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="VaNRtjLqdTXlUVfQ7H0l-5" target="4Y7MrG0Yg-tEDEvkfqsa-42">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
         <mxCell id="VaNRtjLqdTXlUVfQ7H0l-5" value="&lt;font style=&quot;font-size: 11px;&quot;&gt;처방전 QR 안내 음성 출력&lt;br&gt;or 의약품 약 요청&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="490" y="198" width="130" height="40" as="geometry" />
         </mxCell>
@@ -213,14 +237,25 @@
         <mxCell id="VaNRtjLqdTXlUVfQ7H0l-7" value="Ultrasonic" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" parent="1" vertex="1">
           <mxGeometry x="670" y="64" width="130" height="30" as="geometry" />
         </mxCell>
+        <mxCell id="4Y7MrG0Yg-tEDEvkfqsa-44" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="550" y="653" as="targetPoint" />
+            <mxPoint x="430" y="653" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="4Y7MrG0Yg-tEDEvkfqsa-45" value="/task_state&lt;div&gt;Topic&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="4Y7MrG0Yg-tEDEvkfqsa-44">
+          <mxGeometry x="-0.1557" y="-3" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
         <mxCell id="VaNRtjLqdTXlUVfQ7H0l-11" value="약 종이 봉투에 담기&lt;div&gt;put_pill_in_bag()&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="300" y="640" width="130" height="42" as="geometry" />
         </mxCell>
         <mxCell id="NTEcIHUlj5o2l75i7hv5-2" value="종료" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" parent="1" vertex="1">
-          <mxGeometry x="18.5" y="1110" width="781.5" height="30" as="geometry" />
+          <mxGeometry x="18.5" y="1120" width="781.5" height="30" as="geometry" />
         </mxCell>
         <mxCell id="NTEcIHUlj5o2l75i7hv5-6" value="물품 설명" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-          <mxGeometry x="465" y="1050" width="110" height="30" as="geometry" />
+          <mxGeometry x="465" y="1070" width="110" height="30" as="geometry" />
         </mxCell>
         <mxCell id="4Y7MrG0Yg-tEDEvkfqsa-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
@@ -228,7 +263,7 @@
             <mxPoint x="670" y="122" as="sourcePoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="4Y7MrG0Yg-tEDEvkfqsa-7" value="/tesk_state&lt;div&gt;Topic&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="4Y7MrG0Yg-tEDEvkfqsa-6">
+        <mxCell id="4Y7MrG0Yg-tEDEvkfqsa-7" value="/task_state&lt;div&gt;Topic&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="4Y7MrG0Yg-tEDEvkfqsa-6">
           <mxGeometry x="0.0183" y="-1" relative="1" as="geometry">
             <mxPoint x="93" as="offset" />
           </mxGeometry>
@@ -243,19 +278,19 @@
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="4Y7MrG0Yg-tEDEvkfqsa-13" value="Ultrasonic" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
-          <mxGeometry x="670" y="800" width="130" height="30" as="geometry" />
+          <mxGeometry x="670" y="810" width="130" height="30" as="geometry" />
         </mxCell>
         <mxCell id="4Y7MrG0Yg-tEDEvkfqsa-22" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-family: Helvetica; font-size: 11px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: nowrap; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; display: inline !important; float: none;&quot;&gt;/tesk_state&lt;/span&gt;&lt;div style=&quot;forced-color-adjust: none; color: rgb(0, 0, 0); font-family: Helvetica; font-size: 11px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: nowrap; text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;&quot;&gt;Topic&lt;/div&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="4Y7MrG0Yg-tEDEvkfqsa-16">
           <mxGeometry x="-0.7229" relative="1" as="geometry">
-            <mxPoint x="300" y="855" as="targetPoint" />
+            <mxPoint x="300" y="865" as="targetPoint" />
             <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>
         <mxCell id="4Y7MrG0Yg-tEDEvkfqsa-16" value="&lt;span style=&quot;font-size: 11px;&quot;&gt;사람 감지 인식&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="670" y="840" width="130" height="30" as="geometry" />
+          <mxGeometry x="670" y="850" width="130" height="30" as="geometry" />
         </mxCell>
         <mxCell id="4Y7MrG0Yg-tEDEvkfqsa-17" value="처방전 QR 인식 자세&lt;div&gt;move_check_qr()&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="237" y="880" width="126" height="48" as="geometry" />
+          <mxGeometry x="237" y="890" width="126" height="48" as="geometry" />
         </mxCell>
         <mxCell id="4Y7MrG0Yg-tEDEvkfqsa-21" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.503;entryY=-0.049;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="4uhuHD_OqtdL1rbwjFQc-23" target="4Y7MrG0Yg-tEDEvkfqsa-17">
           <mxGeometry relative="1" as="geometry" />
@@ -264,6 +299,15 @@
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="4Y7MrG0Yg-tEDEvkfqsa-41" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.642;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="NTEcIHUlj5o2l75i7hv5-6" target="NTEcIHUlj5o2l75i7hv5-2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="4Y7MrG0Yg-tEDEvkfqsa-42" value="&lt;span style=&quot;font-size: 11px;&quot;&gt;처방한 약 설명&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="490" y="680" width="130" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="4Y7MrG0Yg-tEDEvkfqsa-47" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.634;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="4Y7MrG0Yg-tEDEvkfqsa-42" target="ZfewzwySDCzYrbojLsdr-42">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="4Y7MrG0Yg-tEDEvkfqsa-54" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.066;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="4uhuHD_OqtdL1rbwjFQc-32" target="NTEcIHUlj5o2l75i7hv5-2">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
       </root>

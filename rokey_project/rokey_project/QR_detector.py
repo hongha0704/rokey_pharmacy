@@ -1,3 +1,5 @@
+'''QR코드 인식을 테스트하는 파일'''
+
 import rclpy
 from rclpy.node import Node
 from rokey_interfaces.msg import TaskState
@@ -125,9 +127,4 @@ def main(args=None):
 
 if __name__ == '__main__':
     main()
-
-
-
-
-
-    #########################################3
+    
