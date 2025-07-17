@@ -39,6 +39,7 @@ AI Vision 기술을 활용한 약 분류 및 조제로 안정성 향상
 &nbsp;
 
 ## 3. 🗓 프로젝트 구현 일정
+**진행 일자: 25.5.26(월) ~ 25.6.5(목) (11일)**
 <img src="rokey_project/image/notion/250717_project_management.png" width="100%" height="100%" title="px(픽셀) 크기 설정" alt="project_management"></img>
 
 &nbsp;
