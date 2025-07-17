@@ -35,9 +35,10 @@ code: [main_vision_realsense](rokey_project/rokey_project/main_vision_realsense.
 ```bash
 ros2 run rokey_project main_vision_realsense
 ```
+&nbsp;
 
 ### 📷 시연 영상
-[youtube](https://youtu.be/FMOeqKwD2Ls)
+https://youtu.be/FMOeqKwD2Ls
 
 ---
 &nbsp;
