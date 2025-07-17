@@ -25,16 +25,19 @@ ROKEY B-1조 협동-2 Project (AI기반 협동 로봇 작업 어시스턴트 구
 ### 💻 코드 실행
 
 #### **robot control node**
-[Google](rokey_project/rokey_project/main_robot_control.py)
+code: [main_robot_control](rokey_project/rokey_project/main_robot_control.py)
 ```bash
 ros2 run rokey_project main_robot_control
 ```
 
 #### **vision**
-[Google](http://www.google.co.kr)
+code: [main_vision_realsense](rokey_project/rokey_project/main_vision_realsense.py)
 ```bash
 ros2 run rokey_project main_vision_realsense
 ```
+
+### 📷 시연 영상
+[youtube](https://youtu.be/FMOeqKwD2Ls)
 
 ---
 &nbsp;
