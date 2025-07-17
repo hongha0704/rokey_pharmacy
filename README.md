@@ -12,7 +12,11 @@ ROKEY B-1조 협동-2 Project (AI기반 협동 로봇 작업 어시스턴트 구
 > ⚠️ 본 저장소는 두산로보틱스의 공식 저장소가 아니며, 비공식적으로 일부 수정 및 구성을 포함하고 있습니다.  
 > 공식 자료는 [두산로보틱스 공식 홈페이지](http://www.doosanrobotics.com/kr/)를 참고해 주세요.   
 > github (https://github.com/DoosanRobotics/doosan-robot2)
----   
+---
+### 🔨 개발환경
+본 프로젝트는 Ubuntu 22.04 (ROS2 humble) 환경에서 개발되었습니다.
+
+---
 &nbsp;
 
 ## 1. 📘 프로젝트 개요
@@ -44,4 +48,5 @@ AI Vision 기술을 활용한 약 분류 및 조제로 안정성 향상
 
 &nbsp;
 
+## 4. 🤖 시스템 플로우
 
