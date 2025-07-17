@@ -48,23 +48,48 @@ AI Vision 기술을 활용한 약 분류 및 조제로 안정성 향상
 
 &nbsp;
 
-## 4. 🎬 System Flow
-<img src="rokey_project/image/system_flow/ROKEY_Pharmacy_detail.drawio.png" width="75%" height="75%" title="px(픽셀) 크기 설정" alt="system_flow"></img>
-
-&nbsp;
-
-## 5. 📌 SKILLS
+## 4. 📌 SKILLS
 ### **Development Environment**
-Ubuntu 22.04, VSCode
+<div align=left>
+  
+  ![Ubuntu](https://img.shields.io/badge/Ubuntu-E95420?style=for-the-badge&logo=ubuntu&logoColor=white)
+  ![Visual Studio Code](https://img.shields.io/badge/Visual%20Studio%20Code-0078d7.svg?style=for-the-badge&logo=visual-studio-code&logoColor=white)
+</div>
+
+[![My Skills](https://skillicons.dev/icons?i=ubuntu,vscode&theme=light)](https://skillicons.dev)
+
 ### **Robotics**
-ROS 2, GAZEBO, RVIZ2
+![ROS](https://img.shields.io/badge/ros-%230A0FF9.svg?style=for-the-badge&logo=ros&logoColor=white)   
+[![My Skills](https://skillicons.dev/icons?i=ros&theme=light)](https://skillicons.dev)
+
+### **Programming Languages**
+![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)   
+[![My Skills](https://skillicons.dev/icons?i=python&theme=light)](https://skillicons.dev)
+
+### **AI & Computer Vision**
+<div align=left>
+  
+  ![PyTorch](https://img.shields.io/badge/PyTorch-%23EE4C2C.svg?style=for-the-badge&logo=PyTorch&logoColor=white)
+  ![OpenCV](https://img.shields.io/badge/opencv-%23white.svg?style=for-the-badge&logo=opencv&logoColor=white)
+</div>
+
+[![My Skills](https://skillicons.dev/icons?i=pytorch,opencv&theme=light)](https://skillicons.dev) 
 
 &nbsp;
 
-## 6. 🤖 Hardware
+## 5. 🤖 Hardware
 - **Robot:** Doosan Robotics m0609, OnRobot RG2 Gripper
 - **Vision Camera:** Intel RealSense D435i
 - **SBC:** Raspberrypi4 4gb
 - **Mic:** Logitech HD Webcam C270
 - **Speaker:** Blutooth speaker
 - **Sensor:** HC-SRO4 Ultrasonic Sensor
+
+- &nbsp;
+
+## 6. 🎬 System Flow
+<img src="rokey_project/image/system_flow/ROKEY_Pharmacy_detail.drawio.png" width="75%" height="75%" title="px(픽셀) 크기 설정" alt="system_flow"></img>
+
+&nbsp;
+
+
