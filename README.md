@@ -25,7 +25,7 @@ ROKEY B-1조 협동-2 Project (AI기반 협동 로봇 작업 어시스턴트 구
 ### 💻 코드 실행
 
 #### **robot control node**
-[Google](http://www.google.co.kr)
+[Google](rokey_project/rokey_project/main_robot_control.py)
 ```bash
 ros2 run rokey_project main_robot_control
 ```
