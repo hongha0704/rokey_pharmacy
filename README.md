@@ -13,6 +13,7 @@ ROKEY B-1조 협동-2 Project (AI기반 협동 로봇 작업 어시스턴트 구
 > 공식 자료는 [두산로보틱스 공식 홈페이지](http://www.doosanrobotics.com/kr/)를 참고해 주세요.   
 > github (https://github.com/DoosanRobotics/doosan-robot2)
 ---
+
 ### 🔨 개발환경
 본 프로젝트는 Ubuntu 22.04 (ROS2 humble) 환경에서 개발되었습니다.   
 &nbsp;
@@ -22,8 +23,17 @@ ROKEY B-1조 협동-2 Project (AI기반 협동 로봇 작업 어시스턴트 구
 &nbsp;
 
 ### 💻 코드 실행
+
+#### **robot control node**
+[Google](http://www.google.co.kr)
 ```bash
-ros2 run
+ros2 run rokey_project main_robot_control
+```
+
+#### **vision**
+[Google](http://www.google.co.kr)
+```bash
+ros2 run rokey_project main_vision_realsense
 ```
 
 ---
