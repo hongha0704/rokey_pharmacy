@@ -14,7 +14,17 @@ ROKEY B-1조 협동-2 Project (AI기반 협동 로봇 작업 어시스턴트 구
 > github (https://github.com/DoosanRobotics/doosan-robot2)
 ---
 ### 🔨 개발환경
-본 프로젝트는 Ubuntu 22.04 (ROS2 humble) 환경에서 개발되었습니다.
+본 프로젝트는 Ubuntu 22.04 (ROS2 humble) 환경에서 개발되었습니다.   
+&nbsp;
+
+### 🦾 작업공간
+<img src="rokey_project/image/workspace/IMG_3175.jpg" width="50%" height="50%" title="px(픽셀) 크기 설정" alt="project_management"></img>   
+&nbsp;
+
+### 💻 코드 실행
+```bash
+ros2 run
+```
 
 ---
 &nbsp;
@@ -29,7 +39,8 @@ AI Vision 기술을 활용한 약 분류 및 조제로 안정성 향상
 2. **의료 인력 부족 해결**   
 약 조제의 자동화로 의료진 업무 부담 감소 및 인력 부족 문제 해결   
 3. **고령화 대응**   
-스스로 약을 복용하기 어려운 고령층을 위해 AI Voice를 활용한 음성 안내 서비스 제공   
+스스로 약을 복용하기 어려운 고령층을 위해 AI Voice를 활용한 음성 안내 서비스 제공
+
 &nbsp;
 
 ## 2. 👥 프로젝트 팀 구성 및 역할분담
@@ -78,12 +89,18 @@ AI Vision 기술을 활용한 약 분류 및 조제로 안정성 향상
 &nbsp;
 
 ## 5. 🤖 Hardware
-- **Robot:** Doosan Robotics m0609, OnRobot RG2 Gripper
-- **Vision Camera:** Intel RealSense D435i
-- **SBC:** Raspberrypi4 4gb
-- **Mic:** Logitech HD Webcam C270
-- **Speaker:** Blutooth speaker
-- **Sensor:** HC-SRO4 Ultrasonic Sensor
+### **Robot**
+- Doosan Robotics m0609, OnRobot RG2 Gripper
+### **Vision Camera**
+- Intel RealSense D435i
+### **SBC**
+- Raspberrypi4 4gb
+### **Mic**
+- Logitech HD Webcam C270
+### **Speaker**
+- Blutooth speaker
+### **Sensor**
+- HC-SRO4 Ultrasonic Sensor
 
 &nbsp;
 
