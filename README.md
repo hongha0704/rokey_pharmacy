@@ -48,12 +48,12 @@ AI Vision 기술을 활용한 약 분류 및 조제로 안정성 향상
 
 &nbsp;
 
-## 4. 🎬 시스템 플로우
+## 4. 🎬 System Flow
 <img src="rokey_project/image/system_flow/ROKEY_Pharmacy_detail.drawio.png" width="75%" height="75%" title="px(픽셀) 크기 설정" alt="system_flow"></img>
 
 &nbsp;
 
-## 5. 📌 사용 기술
+## 5. 📌 SKILLS
 ### **Development Environment**
 Ubuntu 22.04, VSCode
 ### **Robotics**
@@ -61,7 +61,7 @@ ROS 2, GAZEBO, RVIZ2
 
 &nbsp;
 
-## 6. 🤖 사용 장비
+## 6. 🤖 Hardware
 - **Robot:** Doosan Robotics m0609, OnRobot RG2 Gripper
 - **Vision Camera:** Intel RealSense D435i
 - **SBC:** Raspberrypi4 4gb
