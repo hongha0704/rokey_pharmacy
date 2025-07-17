@@ -85,7 +85,7 @@ AI Vision 기술을 활용한 약 분류 및 조제로 안정성 향상
 - **Speaker:** Blutooth speaker
 - **Sensor:** HC-SRO4 Ultrasonic Sensor
 
-- &nbsp;
+&nbsp;
 
 ## 6. 🎬 System Flow
 <img src="rokey_project/image/system_flow/ROKEY_Pharmacy_detail.drawio.png" width="75%" height="75%" title="px(픽셀) 크기 설정" alt="system_flow"></img>
