@@ -145,6 +145,78 @@ AI Vision 기술을 활용한 약 분류 및 조제로 안정성 향상
 
 &nbsp;
 
+## 8. ✨ 주요 기능
+### 1. 초음파 센서 사람 감지
+- 5~37 cm 거리에 있는 사용자 3초 이상 감지   
+- moving average 필터   
+<img src="https://github.com/user-attachments/assets/d390d406-e97c-4f00-8c67-663e4a36e04a" width="50%" height="50%" title="px(픽셀) 크기 설정" alt="image"></img>
+
+&nbsp;
+### 2. 처방전 QR 인식 자세 & voice 약국 안내 음성
+- 로봇의 동작은 모두 movesj 로 자연스럽게 연결   
+- voice: “안녕하세요 rokey약국입니다. qr을 스캔하거나 hello rokey를 말해주세요”  
+<img src="https://github.com/user-attachments/assets/81733333-48ba-4921-8eac-3c5cf5c7d0fd" width="50%" height="50%" title="px(픽셀) 크기 설정" alt="image"></img>
+
+&nbsp;
+### 3. QR코드 인식
+<img src="https://github.com/user-attachments/assets/af6e1221-5292-4f17-baa2-be276dffb9e0" width="50%" height="50%" title="px(픽셀) 크기 설정" alt="image"></img>
+<img src="https://github.com/user-attachments/assets/44a135ab-882e-4c1f-ba33-fa2a725d61aa" width="30%" height="30%" title="px(픽셀) 크기 설정" alt="image"></img>
+
+&nbsp;
+### 4. 서랍 바라보는 모션 / 서랍 text 인식
+<img src="https://github.com/user-attachments/assets/8a1c71d9-1aed-4b71-9499-7248f7c92c85" width="50%" height="50%" title="px(픽셀) 크기 설정" alt="image"></img>
+<img src="https://github.com/user-attachments/assets/df43f7af-182a-4cc6-8a96-5676fc8755ae" width="30%" height="30%" title="px(픽셀) 크기 설정" alt="image"></img>
+
+&nbsp;
+### 5. 인식한 text 서랍 열기
+<img src="https://github.com/user-attachments/assets/1cd024d4-4a71-4e48-9322-bc1b2d39cb87" width="50%" height="50%" title="px(픽셀) 크기 설정" alt="image"></img>
+
+&nbsp;
+### 6. 서랍 안 바라보는 자세 이동
+<img src="https://github.com/user-attachments/assets/73f02dd5-6f5a-4c0c-83bf-4d5501e130c1" width="50%" height="50%" title="px(픽셀) 크기 설정" alt="image"></img>
+
+&nbsp;
+### 7. 약 탐지
+- YOLO 활용 약 구분   
+- 타원형 알약은 instance segmentation을 활용하여 타원 모양 추정 -> 회전각 theta 계산   
+- 알약의 중심점 좌표와 회전각 정보(x, y, theta)를 robot_control_node에 퍼블리시   
+<img src="https://github.com/user-attachments/assets/b68e3548-eaa7-49d4-8773-d03e36454e04" width="40%" height="40%" title="px(픽셀) 크기 설정" alt="image"></img>
+<img src="https://github.com/user-attachments/assets/82cb9e45-f7db-4e4d-a0e6-d1cebfa76185" width="40%" height="40%" title="px(픽셀) 크기 설정" alt="image"></img>
+
+&nbsp;
+### 8. 약 pick and place
+- gripper 너비 알약 크기에 맞춰 조정   
+- 카메라캘리브레이션을 활용하여 알약의 (x, y) 정보를 월드좌표로 변환한 후 로봇 해당 위치로 이동   
+- 알약의 theta 값 만큼 로봇 6축 회전 후 pick
+- 알약을 약봉투에 넣을 때 위아래로 2번 흔드는 모션 추가하여 잘 떨어지지 않을 때를 방지   
+<img src="https://github.com/user-attachments/assets/9a691ccf-ccf2-4e91-a2be-dbb930160938" width="50%" height="50%" title="px(픽셀) 크기 설정" alt="image"></img>
+
+&nbsp;
+### 9. 서랍 넣기
+- 알약을 모두 처방한 후 서랍 넣기   
+- 서랍을 살짝 들고 넣기 (서랍의 바닥면 마찰 최소화)   
+- 마무리로 밀어 넣기   
+<img src="https://github.com/user-attachments/assets/9e0def9a-e57a-4792-8128-c4c5f8eef28d" width="50%" height="50%" title="px(픽셀) 크기 설정" alt="image"></img>
+
+&nbsp;
+### 10. 약 포장 대기 상태 이동  
+- 약사가 약을 포장하고 신호를 줄 때까지 대기   
+<img src="https://github.com/user-attachments/assets/8b859276-1b33-4857-8473-1b3b172934a5" width="50%" height="50%" title="px(픽셀) 크기 설정" alt="image"></img>
+
+&nbsp;
+### 11. 약사 약 포장 후 신호
+- 약사가 약을 검사 후 포장
+- 그리퍼 사이에 약봉지를 끼워 넣고 x축 방향으로 외력을 주어 신호 전달   
+<img src="https://github.com/user-attachments/assets/b2ac0cbc-f5f4-41fa-9217-4e2ca8568bb1" width="50%" height="50%" title="px(픽셀) 크기 설정" alt="image"></img>
+
+&nbsp;
+### 12. 약 봉투에 넣기 / 해당 약에 대한 설명
+- 외력 신호를 받은 로봇은 약을 약 봉투에 넣음   
+- voice로 처방한 약에 대한 설명 (예: “해당 약은 위염치료제이며 다른 약 복용시 위 손상을 막아줍니다. 감사합니다 안녕히가세요.”)   
+<img src="https://github.com/user-attachments/assets/e8281509-4721-49a5-9d01-cc0180c0407e" width="50%" height="50%" title="px(픽셀) 크기 설정" alt="image"></img>
+
+&nbsp;
+
 ## 8. 🔍 프로젝트 기대효과
 ### **활용 방안**
 - 약국 내 조제 공정
